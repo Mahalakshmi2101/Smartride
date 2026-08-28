@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartRide — Driver Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+
+    :root {
+      --bg:     #02040c;
+      --navy:   #080d1f;
+      --purple: #7c3aed;
+      --violet: #a78bfa;
+      --cyan:   #22d3ee;
+      --green:  #34d399;
+      --amber:  #fbbf24;
+      --red:    #f87171;
+      --white:  #eef2ff;
+      --dim:    #64748b;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'Outfit',sans-serif;
+      color:var(--white);
+      background:var(--bg);
+      min-height:100vh;
+    }
+
+    /* ═══════════════════════════════
+       NIGHT SKY
+    ═══════════════════════════════ */
+    .sky {
+      position:fixed; inset:0; z-index:0;
+      background:
+        radial-gradient(ellipse 70% 55% at 15% 8%,  rgba(88,28,220,.45)  0%, transparent 65%),
+        radial-gradient(ellipse 55% 45% at 85% 6%,  rgba(8,110,160,.35)  0%, transparent 60%),
+        radial-gradient(ellipse 100% 50% at 50% 0%, rgba(25,8,75,.8)     0%, transparent 65%),
+        linear-gradient(180deg,#08031e 0%,#070c28 15%,#060a20 32%,#050818 52%,#030610 72%,#02040c 100%);
+    }
+    .stars { position:fixed; inset:0; pointer-events:none; z-index:1; }
+    .s1 {
+      position:absolute; width:1px; height:1px; border-radius:50%; background:transparent;
+      box-shadow:
+        42px 18px #fff, 130px 55px rgba(255,255,255,.6), 195px 8px #fff,
+        280px 72px rgba(255,255,255,.5), 340px 33px #fff, 490px 60px #fff,
+        560px 28px rgba(255,255,255,.5), 625px 45px #fff, 700px 9px rgba(255,255,255,.9),
+        770px 68px #fff, 910px 20px #fff, 975px 58px rgba(255,255,255,.7),
+        1050px 12px #fff, 1115px 44px rgba(255,255,255,.6), 1190px 70px #fff,
+        1330px 48px #fff, 68px 110px rgba(255,255,255,.6), 230px 98px #fff,
+        395px 130px rgba(255,255,255,.7), 548px 155px #fff, 688px 175px rgba(255,255,255,.8),
+        828px 148px #fff, 962px 170px rgba(255,255,255,.4), 1098px 95px #fff,
+        1235px 112px rgba(255,255,255,.5), 1365px 145px rgba(255,255,255,.75);
+      animation:tw 7s ease-in-out infinite alternate;
+    }
+    .s2 {
+      position:absolute; width:2px; height:2px; border-radius:50%; background:transparent;
+      box-shadow:
+        88px 35px rgba(255,255,255,.9), 358px 58px rgba(255,255,255,.8),
+        532px 78px rgba(255,255,255,.7), 698px 18px rgba(255,255,255,.95),
+        865px 30px rgba(255,255,255,.9), 1032px 22px rgba(255,255,255,.8),
+        142px 128px rgba(255,255,255,.9), 388px 105px rgba(255,255,255,.85),
+        622px 125px rgba(255,255,255,.7), 852px 112px rgba(255,255,255,.9),
+        1082px 132px rgba(255,255,255,.8), 295px 235px rgba(255,255,255,.9);
+      animation:tw 9s ease-in-out infinite alternate; animation-delay:-3s;
+    }
+    .s3 {
+      position:absolute; width:2.5px; height:2.5px; border-radius:50%; background:transparent;
+      filter:drop-shadow(0 0 2px rgba(255,255,255,.8));
+      box-shadow:
+        165px 48px rgba(255,255,255,1), 425px 22px rgba(255,248,215,1),
+        672px 55px rgba(215,240,255,1), 918px 30px rgba(255,255,255,1),
+        548px 118px rgba(255,255,255,1), 795px 155px rgba(255,248,215,1);
+      animation:tw 4.5s ease-in-out infinite alternate; animation-delay:-1.5s;
+    }
+    @keyframes tw { 0%{opacity:.4} 50%{opacity:.9} 100%{opacity:.5} }
+
+    .glow { position:fixed; border-radius:50%; filter:blur(100px); pointer-events:none; z-index:1; }
+    .ga { width:500px;height:400px;background:rgba(76,29,149,.18); top:-120px;left:-80px; }
+    .gb { width:400px;height:400px;background:rgba(6,182,212,.11); top:5%;right:-100px; }
+
+    /* ═══════════════════════════════
+       NAVBAR
+    ═══════════════════════════════ */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1rem 2.4rem;
+      background:rgba(2,4,12,.7); backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .logo {
+      font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:.07em;
+      background:linear-gradient(120deg,var(--violet),var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; text-decoration:none;
+    }
+    .nav-center {
+      display:flex; align-items:center; gap:.4rem;
+      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+      border-radius:50px; padding:4px;
+    }
+    .tab-btn {
+      padding:7px 20px; border:none; border-radius:50px;
+      font-family:'Outfit',sans-serif; font-size:.85rem; font-weight:500;
+      cursor:pointer; transition:all .25s; background:transparent; color:var(--dim);
+    }
+    .tab-btn.active {
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      color:#fff; box-shadow:0 0 16px rgba(124,58,237,.4);
+    }
+    .nav-right { display:flex; align-items:center; gap:1rem; }
+    .nav-name { font-size:.88rem; color:var(--dim); }
+    .nav-name span { color:var(--violet); font-weight:500; }
+    .logout-btn {
+      padding:6px 16px; background:rgba(248,113,113,.1);
+      border:1px solid rgba(248,113,113,.2); border-radius:50px;
+      color:var(--red); font-size:.82rem; cursor:pointer;
+      font-family:'Outfit',sans-serif; transition:all .2s;
+    }
+    .logout-btn:hover { background:rgba(248,113,113,.2); }
+
+    /* ═══════════════════════════════
+       MAIN LAYOUT
+    ═══════════════════════════════ */
+    main {
+      position:relative; z-index:10;
+      max-width:1100px; margin:0 auto;
+      padding:6.5rem 1.5rem 3rem;
+    }
+
+    /* welcome strip */
+    .welcome {
+      margin-bottom:2rem;
+      opacity:0; animation:fadeUp .7s ease .2s forwards;
+    }
+    .welcome-tag {
+      font-size:.72rem; letter-spacing:.2em; text-transform:uppercase;
+      color:var(--violet); margin-bottom:.3rem;
+    }
+    .welcome-title {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2rem,5vw,3rem); letter-spacing:.04em;
+      color:var(--white);
+    }
+    .welcome-title span { color:var(--cyan); }
+
+    /* stat chips */
+    .stats-row {
+      display:flex; gap:1rem; flex-wrap:wrap;
+      margin-bottom:2rem;
+      opacity:0; animation:fadeUp .7s ease .35s forwards;
+    }
+    .stat-chip {
+      display:flex; align-items:center; gap:.7rem;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; padding:.75rem 1.2rem;
+      flex:1; min-width:140px;
+    }
+    .stat-chip-icon { font-size:1.4rem; }
+    .stat-chip-val {
+      font-family:'Bebas Neue',sans-serif; font-size:1.6rem;
+      letter-spacing:.04em; line-height:1;
+      background:linear-gradient(135deg,var(--white),var(--violet));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .stat-chip-label { font-size:.72rem; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; }
+
+    /* ═══════════════════════════════
+       PANELS — the two main sections
+    ═══════════════════════════════ */
+    .panels { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start; }
+
+    @media(max-width:780px) { .panels { grid-template-columns:1fr; } }
+
+    /* glass panel */
+    .panel {
+      background:rgba(255,255,255,.05);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:20px;
+      padding:1.8rem;
+      position:relative; overflow:hidden;
+      opacity:0; animation:fadeUp .7s ease forwards;
+    }
+    .panel::before {
+      content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(167,139,250,.5),transparent);
+    }
+    .panel.p1 { animation-delay:.5s; }
+    .panel.p2 { animation-delay:.65s; }
+
+    .panel-title {
+      font-family:'Bebas Neue',sans-serif; font-size:1.35rem;
+      letter-spacing:.05em; color:var(--white); margin-bottom:1.4rem;
+      display:flex; align-items:center; gap:.5rem;
+    }
+
+    /* ═══════════════════════════════
+       POST RIDE FORM
+    ═══════════════════════════════ */
+    .field { margin-bottom:1rem; }
+    label {
+      display:block; font-size:.76rem; font-weight:500;
+      color:var(--violet); letter-spacing:.06em;
+      text-transform:uppercase; margin-bottom:.38rem;
+    }
+    .input-wrap { position:relative; }
+    .iico {
+      position:absolute; left:12px; top:50%;
+      transform:translateY(-50%); font-size:.9rem;
+      opacity:.4; pointer-events:none;
+    }
+    input, select, textarea {
+      width:100%;
+      padding:11px 12px 11px 36px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:11px;
+      color:var(--white);
+      font-family:'Outfit',sans-serif; font-size:.9rem;
+      outline:none;
+      transition:border-color .25s,background .25s,box-shadow .25s;
+    }
+    input::placeholder, textarea::placeholder { color:rgba(255,255,255,.22); }
+    input:focus, select:focus, textarea:focus {
+      border-color:rgba(124,58,237,.65);
+      background:rgba(124,58,237,.08);
+      box-shadow:0 0 0 3px rgba(124,58,237,.13);
+    }
+    select { appearance:none; cursor:pointer; }
+    select option { background:#0d1026; }
+    textarea { padding:11px 12px; resize:vertical; min-height:70px; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+
+    .btn-post {
+      width:100%; padding:13px;
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      color:#fff; border:none; border-radius:11px;
+      font-family:'Outfit',sans-serif; font-size:.95rem; font-weight:600;
+      cursor:pointer; margin-top:.4rem;
+      transition:all .25s;
+      box-shadow:0 0 24px rgba(124,58,237,.3);
+      position:relative; overflow:hidden;
+    }
+    .btn-post::after {
+      content:''; position:absolute; top:0; left:-100%;
+      width:100%; height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
+      transition:left .4s;
+    }
+    .btn-post:hover::after { left:100%; }
+    .btn-post:hover { transform:translateY(-1px); box-shadow:0 0 38px rgba(124,58,237,.55); }
+    .btn-post:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+    /* ═══════════════════════════════
+       RIDES + BOOKINGS LIST
+    ═══════════════════════════════ */
+    .section-tabs {
+      display:flex; gap:.5rem; margin-bottom:1.2rem;
+    }
+    .stab {
+      padding:6px 16px; border-radius:50px; border:none;
+      font-family:'Outfit',sans-serif; font-size:.82rem; font-weight:500;
+      cursor:pointer; transition:all .22s;
+      background:rgba(255,255,255,.06); color:var(--dim);
+    }
+    .stab.on {
+      background:rgba(124,58,237,.25);
+      border:1px solid rgba(124,58,237,.4);
+      color:var(--violet);
+    }
+
+    .list-area { min-height:200px; }
+
+    /* individual ride / booking card */
+    .ride-card {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; padding:1rem 1.1rem;
+      margin-bottom:.8rem;
+      transition:border-color .2s, transform .2s;
+      animation:fadeUp .5s ease forwards; opacity:0;
+    }
+    .ride-card:hover {
+      border-color:rgba(124,58,237,.35);
+      transform:translateY(-1px);
+    }
+
+    .ride-route {
+      display:flex; align-items:center; gap:.5rem;
+      font-weight:500; font-size:.95rem; margin-bottom:.5rem;
+    }
+    .ride-route .arrow { color:var(--violet); font-size:1rem; }
+
+    .ride-meta {
+      display:flex; gap:.8rem; flex-wrap:wrap;
+    }
+    .meta-chip {
+      font-size:.75rem; color:var(--dim);
+      display:flex; align-items:center; gap:.3rem;
+    }
+
+    /* status badge */
+    .badge {
+      display:inline-block;
+      padding:2px 10px; border-radius:50px;
+      font-size:.72rem; font-weight:600; letter-spacing:.04em;
+    }
+    .badge.active   { background:rgba(52,211,153,.15); color:var(--green); border:1px solid rgba(52,211,153,.3); }
+    .badge.confirmed{ background:rgba(124,58,237,.15); color:var(--violet); border:1px solid rgba(124,58,237,.3); }
+    .badge.pending  { background:rgba(251,191,36,.12); color:var(--amber);  border:1px solid rgba(251,191,36,.3); }
+    .badge.completed{ background:rgba(100,116,139,.12);color:var(--dim);    border:1px solid rgba(100,116,139,.3); }
+
+    /* empty state */
+    .empty {
+      text-align:center; padding:2.5rem 1rem;
+      color:var(--dim); font-size:.9rem;
+    }
+    .empty-icon { font-size:2.5rem; margin-bottom:.6rem; display:block; }
+
+    /* loading */
+    .loading {
+      text-align:center; padding:2rem;
+      color:var(--dim); font-size:.88rem;
+    }
+    .spin {
+      display:inline-block; width:18px; height:18px;
+      border:2px solid rgba(167,139,250,.3); border-top-color:var(--violet);
+      border-radius:50%; animation:spin .7s linear infinite;
+      margin-right:8px; vertical-align:middle;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* toast notification */
+    .toast {
+      position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(80px);
+      background:rgba(52,211,153,.15); border:1px solid rgba(52,211,153,.35);
+      color:var(--green); border-radius:50px;
+      padding:10px 24px; font-size:.9rem; font-weight:500;
+      z-index:200; transition:transform .4s cubic-bezier(0.22,1,0.36,1);
+      backdrop-filter:blur(16px); white-space:nowrap;
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast.error { background:rgba(248,113,113,.15); border-color:rgba(248,113,113,.35); color:var(--red); }
+
+    .spinner {
+      display:inline-block; width:14px; height:14px;
+      border:2px solid rgba(255,255,255,.3); border-top-color:#fff;
+      border-radius:50%; animation:spin .7s linear infinite;
+      margin-right:6px; vertical-align:middle;
+    }
+
+    @keyframes fadeUp {
+      from{opacity:0;transform:translateY(18px)}
+      to  {opacity:1;transform:translateY(0)}
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="sky"></div>
+  <div class="stars"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div>
+  <div class="glow ga"></div>
+  <div class="glow gb"></div>
+
+  <!-- NAVBAR -->
+  <nav>
+    <a href="index.html" class="logo">SmartRide</a>
+
+    <div class="nav-center">
+      <button class="tab-btn active" onclick="showSection('post')">🚗 Post Ride</button>
+      <button class="tab-btn"        onclick="showSection('list')">📋 My Rides & Bookings</button>
+    </div>
+
+    <div class="nav-right">
+      <div class="nav-name">Hi, <span id="navName">Driver</span></div>
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- welcome -->
+    <div class="welcome">
+      <div class="welcome-tag">Driver Dashboard</div>
+      <div class="welcome-title">Ready to Roll, <span id="welcomeName">Driver</span>? 🚗</div>
+    </div>
+
+    <!-- stat chips -->
+    <div class="stats-row">
+      <div class="stat-chip">
+        <span class="stat-chip-icon">🛣️</span>
+        <div>
+          <div class="stat-chip-val" id="statRides">—</div>
+          <div class="stat-chip-label">Rides Posted</div>
+        </div>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-chip-icon">🎟️</span>
+        <div>
+          <div class="stat-chip-val" id="statBookings">—</div>
+          <div class="stat-chip-label">Bookings Received</div>
+        </div>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-chip-icon">💰</span>
+        <div>
+          <div class="stat-chip-val" id="statEarnings">—</div>
+          <div class="stat-chip-label">Est. Earnings (₹)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANELS -->
+    <div class="panels">
+
+      <!-- LEFT: POST RIDE FORM -->
+      <div class="panel p1" id="postPanel">
+        <div class="panel-title">🚀 Post a New Ride</div>
+
+        <div class="field">
+          <label>From</label>
+          <div class="input-wrap">
+            <span class="iico">📍</span>
+            <input type="text" id="source" placeholder="Chennai"/>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>To</label>
+          <div class="input-wrap">
+            <span class="iico">🏁</span>
+            <input type="text" id="destination" placeholder="Bangalore"/>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Date</label>
+            <div class="input-wrap">
+              <span class="iico">📅</span>
+              <input type="date" id="rideDate"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>Time</label>
+            <div class="input-wrap">
+              <span class="iico">🕐</span>
+              <input type="time" id="rideTime"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Seats Available</label>
+            <div class="input-wrap">
+              <span class="iico">💺</span>
+              <input type="number" id="seats" placeholder="3" min="1" max="10"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>Price / Seat (₹)</label>
+            <div class="input-wrap">
+              <span class="iico">💸</span>
+              <input type="number" id="price" placeholder="500" min="0"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Notes (optional)</label>
+          <div class="input-wrap">
+            <textarea id="notes" placeholder="AC car, no smoking, pet friendly..."></textarea>
+          </div>
+        </div>
+
+        <button class="btn-post" id="postBtn" onclick="postRide()">
+          Post Ride →
+        </button>
+      </div>
+
+      <!-- RIGHT: MY RIDES + BOOKINGS -->
+      <div class="panel p2" id="listPanel">
+
+        <div class="section-tabs">
+          <button class="stab on" id="tabRides"    onclick="switchTab('rides')">🛣️ My Rides</button>
+          <button class="stab"    id="tabBookings" onclick="switchTab('bookings')">🎟️ Bookings</button>
+        </div>
+
+        <div class="list-area" id="listArea">
+          <div class="loading"><span class="spin"></span>Loading...</div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+
+    // ── AUTH GUARD ────────────────────────────────────────────
+    // If not logged in or not a driver, kick back to login
+    const token = localStorage.getItem('token');
+    const role  = localStorage.getItem('role');
+    const name  = localStorage.getItem('name');
+
+    if (!token || role !== 'DRIVER') {
+      window.location.href = 'login.html';
+    }
+
+    // ── SET NAME IN UI ────────────────────────────────────────
+    const firstName = name ? name.split(' ')[0] : 'Driver';
+    document.getElementById('navName').textContent     = firstName;
+    document.getElementById('welcomeName').textContent = firstName;
+
+    // ── SECTION TOGGLE (navbar tabs) ─────────────────────────
+    function showSection(sec) {
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach((t,i) => t.classList.toggle('active', (i===0 && sec==='post') || (i===1 && sec==='list')));
+      // on mobile: scroll to the right panel
+      if (sec === 'list') {
+        document.getElementById('listPanel').scrollIntoView({behavior:'smooth'});
+      } else {
+        document.getElementById('postPanel').scrollIntoView({behavior:'smooth'});
+      }
+    }
+
+    // ── SUB-TABS (rides / bookings) ───────────────────────────
+    let currentTab = 'rides';
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabRides').classList.toggle('on',    tab==='rides');
+      document.getElementById('tabBookings').classList.toggle('on', tab==='bookings');
+      if (tab === 'rides')    loadMyRides();
+      else                    loadBookings();
+    }
+
+    // ── SET MIN DATE to today ─────────────────────────────────
+    document.getElementById('rideDate').min = new Date().toISOString().split('T')[0];
+
+    // ── API HELPER ────────────────────────────────────────────
+    async function api(url, method='GET', body=null) {
+      const opts = {
+        method,
+        headers: {
+          'Content-Type':'application/json',
+          'Authorization':'Bearer ' + token
+        }
+      };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(url, opts);
+      return { res, data: await res.json() };
+    }
+
+    // ── TOAST ─────────────────────────────────────────────────
+    function showToast(msg, isError=false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast' + (isError ? ' error' : '');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ── POST A RIDE ───────────────────────────────────────────
+    async function postRide() {
+      const source      = document.getElementById('source').value.trim();
+      const destination = document.getElementById('destination').value.trim();
+      const rideDate    = document.getElementById('rideDate').value;
+      const rideTime    = document.getElementById('rideTime').value;
+      const seats       = document.getElementById('seats').value;
+      const price       = document.getElementById('price').value;
+      const notes       = document.getElementById('notes').value.trim();
+      const btn         = document.getElementById('postBtn');
+
+      if (!source || !destination || !rideDate || !rideTime || !seats || !price) {
+        showToast('Please fill all required fields.', true); return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Posting...';
+
+      try {
+        const { res, data } = await api('/api/rides', 'POST', {
+          source, destination, rideDate, rideTime,
+          availableSeats: parseInt(seats),
+          pricePerSeat:   parseFloat(price),
+          notes
+        });
+
+        if (res.ok) {
+          showToast('✅ Ride posted successfully!');
+          // clear form
+          ['source','destination','rideDate','rideTime','seats','price','notes']
+            .forEach(id => document.getElementById(id).value = '');
+          loadStats();
+          // switch to my rides tab to see the new one
+          switchTab('rides');
+        } else {
+          showToast(data.message || 'Failed to post ride.', true);
+        }
+      } catch(e) {
+        showToast('Server error. Is Spring Boot running?', true);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Post Ride →';
+    }
+
+    // ── LOAD MY RIDES ─────────────────────────────────────────
+    async function loadMyRides() {
+      const area = document.getElementById('listArea');
+      area.innerHTML = '<div class="loading"><span class="spin"></span>Loading rides...</div>';
+
+      try {
+        const { res, data } = await api('/api/rides/my-rides');
+        if (!res.ok) throw new Error();
+
+        if (!data.length) {
+          area.innerHTML = `
+            <div class="empty">
+              <span class="empty-icon">🛣️</span>
+              No rides posted yet.<br/>Post your first ride!
+            </div>`;
+          return;
+        }
+
+        area.innerHTML = data.map((ride, i) => `
+          <div class="ride-card" style="animation-delay:${i*0.07}s">
+            <div class="ride-route">
+              <span>${ride.source}</span>
+              <span class="arrow">→</span>
+              <span>${ride.destination}</span>
+              <span class="badge active" style="margin-left:auto">${ride.status}</span>
+            </div>
+            <div class="ride-meta">
+              <span class="meta-chip">📅 ${ride.rideDate}</span>
+              <span class="meta-chip">🕐 ${ride.rideTime?.slice(0,5)}</span>
+              <span class="meta-chip">💺 ${ride.availableSeats} seats left</span>
+              <span class="meta-chip">💸 ₹${ride.pricePerSeat}/seat</span>
+            </div>
+            ${ride.notes ? `<div style="font-size:.78rem;color:var(--dim);margin-top:.5rem">📝 ${ride.notes}</div>` : ''}
+          </div>`
+        ).join('');
+
+      } catch(e) {
+        area.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span>Could not load rides.</div>';
+      }
+    }
+
+    // ── LOAD BOOKINGS ON MY RIDES ─────────────────────────────
+    // We load my rides first, then for each ride load its bookings
+    async function loadBookings() {
+      const area = document.getElementById('listArea');
+      area.innerHTML = '<div class="loading"><span class="spin"></span>Loading bookings...</div>';
+
+      try {
+        const { res, data: rides } = await api('/api/rides/my-rides');
+        if (!res.ok) throw new Error();
+
+        if (!rides.length) {
+          area.innerHTML = `<div class="empty"><span class="empty-icon">🎟️</span>No rides posted yet.</div>`;
+          return;
+        }
+
+        // fetch bookings for each ride
+        const allBookings = [];
+        for (const ride of rides) {
+          try {
+            const { data: bookings } = await api(`/api/bookings/ride/${ride.id}`);
+            bookings.forEach(b => allBookings.push({ ...b, ride }));
+          } catch(e) {}
+        }
+
+        if (!allBookings.length) {
+          area.innerHTML = `<div class="empty"><span class="empty-icon">🎟️</span>No bookings received yet.</div>`;
+          return;
+        }
+
+        area.innerHTML = allBookings.map((b, i) => `
+          <div class="ride-card" style="animation-delay:${i*0.07}s">
+            <div class="ride-route">
+              <span>🧍 ${b.passenger?.name || 'Passenger'}</span>
+              <span class="badge ${b.status?.toLowerCase()}" style="margin-left:auto">${b.status}</span>
+            </div>
+            <div class="ride-meta">
+              <span class="meta-chip">🛣️ ${b.ride?.source} → ${b.ride?.destination}</span>
+              <span class="meta-chip">💺 ${b.seatsBooked} seat(s)</span>
+              <span class="meta-chip">💰 ₹${b.totalAmount}</span>
+              <span class="meta-chip">📅 ${b.ride?.rideDate}</span>
+            </div>
+            <div style="font-size:.78rem;color:var(--dim);margin-top:.4rem">
+              ✉️ ${b.passenger?.email || '—'} &nbsp; 📱 ${b.passenger?.phone || '—'}
+            </div>
+          </div>`
+        ).join('');
+
+      } catch(e) {
+        area.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span>Could not load bookings.</div>';
+      }
+    }
+
+    // ── STATS ─────────────────────────────────────────────────
+    async function loadStats() {
+      try {
+        const { data: rides } = await api('/api/rides/my-rides');
+        document.getElementById('statRides').textContent = rides.length;
+
+        let totalBookings = 0, totalEarnings = 0;
+        for (const ride of rides) {
+          try {
+            const { data: bookings } = await api(`/api/bookings/ride/${ride.id}`);
+            totalBookings += bookings.length;
+            bookings.forEach(b => totalEarnings += (b.totalAmount || 0));
+          } catch(e) {}
+        }
+        document.getElementById('statBookings').textContent = totalBookings;
+        document.getElementById('statEarnings').textContent = totalEarnings.toLocaleString('en-IN');
+      } catch(e) {}
+    }
+
+    // ── LOGOUT ────────────────────────────────────────────────
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    // ── INIT ──────────────────────────────────────────────────
+    loadStats();
+    loadMyRides();
+
+  </script>
+</body>
+</html>

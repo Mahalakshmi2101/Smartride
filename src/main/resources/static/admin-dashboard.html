@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideWave — Admin Dashboard</title>
+  <style>
+    :root {
+      --navy-900: #0a0e1a;
+      --navy-800: #0f1528;
+      --navy-700: #151c35;
+      --navy-600: #1e2748;
+      --purple-600: #6c3fc5;
+      --purple-500: #7c4fd4;
+      --purple-400: #9b70e8;
+      --cyan-500:   #06c8d4;
+      --cyan-400:   #22e0eb;
+      --cyan-glow:  rgba(6,200,212,0.18);
+      --text-primary: #e8eaf6;
+      --text-muted:   #8892b0;
+      --text-dim:     #4a5568;
+      --success: #2dd4a0;
+      --warning: #f5a623;
+      --danger:  #f06292;
+      --border:  rgba(108,63,197,0.22);
+      --card-bg: rgba(21,28,53,0.85);
+      --radius:  14px;
+      --radius-sm: 8px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--navy-900);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px; min-height: 100vh;
+      background: var(--navy-800);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 28px 0;
+      position: fixed; top:0; left:0; z-index:100;
+    }
+    .sidebar-logo {
+      padding: 0 24px 32px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-icon {
+      width:36px; height:36px;
+      background: linear-gradient(135deg, var(--purple-600), var(--cyan-500));
+      border-radius: 10px;
+      display: flex; align-items:center; justify-content:center;
+      font-size: 18px;
+    }
+    .logo-text {
+      font-size: 20px; font-weight: 700;
+      background: linear-gradient(90deg, var(--purple-400), var(--cyan-400));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sidebar-label {
+      font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+      color:var(--text-dim); padding:0 24px 10px;
+    }
+    .nav-item {
+      display:flex; align-items:center; gap:12px;
+      padding:11px 24px; font-size:14px; color:var(--text-muted);
+      cursor:pointer; border-left:3px solid transparent;
+      transition:all .2s; text-decoration:none;
+    }
+    .nav-item:hover { color:var(--text-primary); background:rgba(108,63,197,0.08); }
+    .nav-item.active {
+      color:var(--cyan-400); border-left-color:var(--cyan-500);
+      background:rgba(6,200,212,0.07);
+    }
+    .nav-item .icon { font-size:16px; width:20px; text-align:center; }
+    .sidebar-spacer { flex:1; }
+    .admin-badge {
+      margin:16px; padding:12px 16px;
+      background:rgba(108,63,197,0.15);
+      border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px;
+    }
+    .admin-badge .name { font-weight:600; color:var(--text-primary); }
+    .admin-badge .role { font-size:11px; color:var(--purple-400); margin-top:2px; }
+    .logout-btn {
+      margin:8px 16px 0; padding:10px 16px;
+      background:transparent; border:1px solid rgba(240,98,146,0.3);
+      border-radius:var(--radius-sm); color:var(--danger); font-size:13px;
+      cursor:pointer; transition:all .2s; width:calc(100% - 32px); text-align:left;
+    }
+    .logout-btn:hover { background:rgba(240,98,146,0.1); }
+
+    /* MAIN */
+    .main { margin-left:240px; flex:1; padding:32px; min-height:100vh; }
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:32px;
+    }
+    .page-title { font-size:24px; font-weight:700; }
+    .page-subtitle { font-size:13px; color:var(--text-muted); margin-top:3px; }
+    .refresh-btn {
+      padding:9px 18px;
+      background:rgba(6,200,212,0.1);
+      border:1px solid rgba(6,200,212,0.3);
+      border-radius:var(--radius-sm);
+      color:var(--cyan-400); font-size:13px; cursor:pointer; transition:all .2s;
+    }
+    .refresh-btn:hover { background:rgba(6,200,212,0.2); }
+
+    /* STAT CARDS */
+    .stats-grid {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:18px; margin-bottom:28px;
+    }
+    .stat-card {
+      background:var(--card-bg); border:1px solid var(--border);
+      border-radius:var(--radius); padding:22px;
+      position:relative; overflow:hidden; transition:border-color .2s;
+    }
+    .stat-card::before {
+      content:''; position:absolute;
+      top:0; left:0; right:0; height:3px;
+    }
+    .stat-card.c1::before { background:linear-gradient(90deg,var(--purple-600),var(--purple-400)); }
+    .stat-card.c2::before { background:linear-gradient(90deg,var(--cyan-500),var(--cyan-400)); }
+    .stat-card.c3::before { background:linear-gradient(90deg,var(--success),#1fa880); }
+    .stat-card.c4::before { background:linear-gradient(90deg,var(--warning),#e8891a); }
+    .stat-card:hover { border-color:rgba(108,63,197,0.45); }
+    .stat-icon { font-size:22px; margin-bottom:14px; display:block; }
+    .stat-value { font-size:32px; font-weight:800; line-height:1; margin-bottom:6px; }
+    .stat-card.c1 .stat-value { color:var(--purple-400); }
+    .stat-card.c2 .stat-value { color:var(--cyan-400); }
+    .stat-card.c3 .stat-value { color:var(--success); }
+    .stat-card.c4 .stat-value { color:var(--warning); }
+    .stat-label { font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.8px; }
+
+    /* SECTION ROW */
+    .section-row {
+      display:grid; grid-template-columns:1.6fr 1fr;
+      gap:18px; margin-bottom:28px;
+    }
+    .panel {
+      background:var(--card-bg); border:1px solid var(--border);
+      border-radius:var(--radius); overflow:hidden;
+    }
+    .panel-head {
+      padding:18px 22px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .panel-head h3 { font-size:15px; font-weight:600; }
+    .panel-head .see-all {
+      font-size:12px; color:var(--cyan-400);
+      cursor:pointer; background:none; border:none; padding:0;
+    }
+
+    /* TABLE */
+    .rw-table { width:100%; border-collapse:collapse; }
+    .rw-table th {
+      text-align:left; font-size:11px; text-transform:uppercase;
+      letter-spacing:.8px; color:var(--text-dim);
+      padding:10px 22px; border-bottom:1px solid var(--border);
+    }
+    .rw-table td {
+      padding:13px 22px; font-size:13px;
+      border-bottom:1px solid rgba(108,63,197,0.08);
+    }
+    .rw-table tr:last-child td { border-bottom:none; }
+    .rw-table tr:hover td { background:rgba(108,63,197,0.04); }
+    .badge {
+      display:inline-block; padding:3px 9px;
+      border-radius:20px; font-size:11px; font-weight:600;
+    }
+    .badge-success { background:rgba(45,212,160,0.12); color:var(--success); }
+    .badge-warning { background:rgba(245,166,35,0.12);  color:var(--warning); }
+    .badge-danger  { background:rgba(240,98,146,0.12);  color:var(--danger); }
+    .badge-purple  { background:rgba(108,63,197,0.15);  color:var(--purple-400); }
+
+    /* QUICK STATS */
+    .quick-list { padding:8px 0; }
+    .quick-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:13px 22px; border-bottom:1px solid rgba(108,63,197,0.08);
+    }
+    .quick-item:last-child { border-bottom:none; }
+    .quick-label { font-size:13px; color:var(--text-muted); }
+    .quick-val   { font-size:15px; font-weight:700; }
+
+    /* FULL PANEL */
+    .full-panel {
+      background:var(--card-bg); border:1px solid var(--border);
+      border-radius:var(--radius); margin-bottom:28px; overflow:hidden;
+    }
+    .search-bar {
+      padding:18px 22px; border-bottom:1px solid var(--border);
+      display:flex; gap:12px; align-items:center;
+    }
+    .search-input {
+      flex:1; background:var(--navy-700); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:9px 14px;
+      color:var(--text-primary); font-size:13px; outline:none;
+    }
+    .search-input:focus { border-color:var(--cyan-500); }
+    .search-input::placeholder { color:var(--text-dim); }
+    .filter-select {
+      background:var(--navy-700); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:9px 14px;
+      color:var(--text-muted); font-size:13px; outline:none; cursor:pointer;
+    }
+
+    /* SPINNER */
+    .spinner {
+      display:none; width:18px; height:18px;
+      border:2px solid var(--border); border-top-color:var(--cyan-500);
+      border-radius:50%; animation:spin .7s linear infinite; margin:auto;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading .spinner { display:block; }
+    .loading .content { display:none; }
+    .empty-state { text-align:center; padding:40px; color:var(--text-dim); font-size:13px; }
+    .error-msg   { text-align:center; padding:24px; color:var(--danger); font-size:13px; }
+
+    /* TOAST */
+    #toast {
+      position:fixed; bottom:28px; right:28px;
+      background:var(--navy-700); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:12px 20px;
+      font-size:13px; color:var(--text-primary);
+      opacity:0; transform:translateY(8px); transition:all .3s;
+      z-index:999; pointer-events:none;
+    }
+    #toast.show { opacity:1; transform:translateY(0); }
+
+    @media (max-width:1100px) {
+      .stats-grid { grid-template-columns:repeat(2,1fr); }
+      .section-row { grid-template-columns:1fr; }
+    }
+    @media (max-width:768px) {
+      .sidebar { display:none; }
+      .main { margin-left:0; padding:20px; }
+      .stats-grid { grid-template-columns:1fr 1fr; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      * { transition:none !important; animation:none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🌊</div>
+    <span class="logo-text">RideWave</span>
+  </div>
+  <div class="sidebar-label">Navigation</div>
+  <a class="nav-item active" href="admin-dashboard.html"><span class="icon">📊</span> Dashboard</a>
+  <a class="nav-item" href="#" onclick="showSection('users')"><span class="icon">👥</span> Users</a>
+  <a class="nav-item" href="#" onclick="showSection('rides')"><span class="icon">🚗</span> Rides</a>
+  <a class="nav-item" href="notifications.html"><span class="icon">🔔</span> Notifications</a>
+  <a class="nav-item" href="dashboard.html"><span class="icon">🏠</span> Main App</a>
+  <div class="sidebar-spacer"></div>
+  <div id="adminBadge" class="admin-badge">
+    <div class="name" id="adminName">Admin</div>
+    <div class="role">Super Admin</div>
+  </div>
+  <button class="logout-btn" onclick="logout()">⬅ Sign Out</button>
+</nav>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Admin Dashboard</div>
+      <div class="page-subtitle" id="lastUpdated">Loading stats…</div>
+    </div>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card c1">
+      <span class="stat-icon">👥</span>
+      <div class="stat-value" id="totalUsers">—</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card c2">
+      <span class="stat-icon">🚗</span>
+      <div class="stat-value" id="totalRides">—</div>
+      <div class="stat-label">Total Rides</div>
+    </div>
+    <div class="stat-card c3">
+      <span class="stat-icon">₹</span>
+      <div class="stat-value" id="totalEarnings">—</div>
+      <div class="stat-label">Platform Earnings</div>
+    </div>
+    <div class="stat-card c4">
+      <span class="stat-icon">❌</span>
+      <div class="stat-value" id="totalCancellations">—</div>
+      <div class="stat-label">Cancellations</div>
+    </div>
+  </div>
+
+  <div class="section-row">
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Recent Rides</h3>
+        <button class="see-all" onclick="showSection('rides')">See all →</button>
+      </div>
+      <div id="recentRidesWrap">
+        <div class="spinner"></div>
+        <div class="content">
+          <table class="rw-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>From → To</th><th>Driver</th><th>Fare</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recentRidesTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Quick Stats</h3></div>
+      <div class="quick-list">
+        <div class="quick-item">
+          <span class="quick-label">Active Rides</span>
+          <span class="quick-val" id="activeRides" style="color:var(--cyan-400)">—</span>
+        </div>
+        <div class="quick-item">
+          <span class="quick-label">Total Drivers</span>
+          <span class="quick-val" id="totalDrivers" style="color:var(--purple-400)">—</span>
+        </div>
+        <div class="quick-item">
+          <span class="quick-label">Total Passengers</span>
+          <span class="quick-val" id="totalPassengers" style="color:var(--purple-400)">—</span>
+        </div>
+        <div class="quick-item">
+          <span class="quick-label">Avg Rating</span>
+          <span class="quick-val" id="avgRating" style="color:var(--warning)">—</span>
+        </div>
+        <div class="quick-item">
+          <span class="quick-label">Unread Notifications</span>
+          <span class="quick-val" id="unreadNotifs" style="color:var(--warning)">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="full-panel" id="section-users">
+    <div class="panel-head" style="padding:18px 22px;"><h3>All Users</h3></div>
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="Search by name or email…"
+             id="userSearch" oninput="filterUsers()"/>
+      <select class="filter-select" id="roleFilter" onchange="filterUsers()">
+        <option value="">All Roles</option>
+        <option value="DRIVER">Drivers</option>
+        <option value="PASSENGER">Passengers</option>
+      </select>
+    </div>
+    <div id="usersWrap">
+      <div class="spinner"></div>
+      <div class="content">
+        <table class="rw-table">
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Rating</th><th>Joined</th></tr>
+          </thead>
+          <tbody id="usersTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="full-panel" id="section-rides">
+    <div class="panel-head" style="padding:18px 22px;"><h3>All Rides</h3></div>
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="Search by location, driver…"
+             id="rideSearch" oninput="filterRides()"/>
+      <select class="filter-select" id="statusFilter" onchange="filterRides()">
+        <option value="">All Statuses</option>
+        <option value="COMPLETED">Completed</option>
+        <option value="ACTIVE">Active</option>
+        <option value="CANCELLED">Cancelled</option>
+        <option value="PENDING">Pending</option>
+      </select>
+    </div>
+    <div id="ridesWrap">
+      <div class="spinner"></div>
+      <div class="content">
+        <table class="rw-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>From</th><th>To</th><th>Driver</th>
+              <th>Seats</th><th>Fare/seat</th><th>Status</th><th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="ridesTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  const BASE = 'http://localhost:8080';
+  let allUsers = [], allRides = [];
+
+  function getToken() { return localStorage.getItem('rw_token'); }
+  function getUser()  { try { return JSON.parse(localStorage.getItem('rw_user')); } catch { return null; } }
+  function authHeaders() {
+    return { 'Content-Type':'application/json', 'Authorization':'Bearer '+getToken() };
+  }
+  function logout() {
+    localStorage.removeItem('rw_token');
+    localStorage.removeItem('rw_user');
+    window.location.href = 'index.html';
+  }
+  function toast(msg, color='var(--cyan-400)') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.borderColor = color;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+  function setLoading(wrapId, on) {
+    const el = document.getElementById(wrapId);
+    if (!el) return;
+    on ? el.classList.add('loading') : el.classList.remove('loading');
+  }
+  function statusBadge(s) {
+    const map = { COMPLETED:'badge-success', ACTIVE:'badge-purple',
+                  CANCELLED:'badge-danger',  PENDING:'badge-warning' };
+    return `<span class="badge ${map[s]||'badge-warning'}">${s}</span>`;
+  }
+  function roleBadge(r) {
+    return r === 'DRIVER'
+      ? `<span class="badge badge-purple">Driver</span>`
+      : `<span class="badge badge-success">Passenger</span>`;
+  }
+
+  async function loadStats() {
+    try {
+      const r = await fetch(`${BASE}/api/admin/stats`, { headers: authHeaders() });
+      if (!r.ok) throw new Error(r.status);
+      const d = await r.json();
+      document.getElementById('totalUsers').textContent         = d.totalUsers ?? '—';
+      document.getElementById('totalRides').textContent         = d.totalRides ?? '—';
+      document.getElementById('totalEarnings').textContent      = d.totalEarnings != null
+        ? '₹'+Number(d.totalEarnings).toLocaleString('en-IN') : '—';
+      document.getElementById('totalCancellations').textContent = d.totalCancellations ?? '—';
+      document.getElementById('activeRides').textContent        = d.activeRides ?? '—';
+      document.getElementById('totalDrivers').textContent       = d.totalDrivers ?? '—';
+      document.getElementById('totalPassengers').textContent    = d.totalPassengers ?? '—';
+      document.getElementById('avgRating').textContent          = d.averageRating != null
+        ? '⭐ '+Number(d.averageRating).toFixed(1) : '—';
+    } catch(e) { toast('Failed to load stats: '+e.message, 'var(--danger)'); }
+  }
+
+  async function loadRecentRides() {
+    setLoading('recentRidesWrap', true);
+    try {
+      const r = await fetch(`${BASE}/api/admin/rides?page=0&size=6`, { headers: authHeaders() });
+      if (!r.ok) throw new Error(r.status);
+      const data = await r.json();
+      const rides = Array.isArray(data) ? data : (data.content ?? []);
+      const tbody = document.getElementById('recentRidesTbody');
+      tbody.innerHTML = rides.length
+        ? rides.slice(0,6).map(rd => `
+            <tr>
+              <td style="color:var(--text-dim);font-size:11px">#${rd.id}</td>
+              <td>${rd.pickupLocation??'—'} → ${rd.dropLocation??'—'}</td>
+              <td>${rd.driverName??'—'}</td>
+              <td style="color:var(--success)">₹${rd.farePerSeat??'—'}</td>
+              <td>${statusBadge(rd.status)}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="5"><div class="empty-state">No rides found.</div></td></tr>';
+    } catch(e) {
+      document.getElementById('recentRidesTbody').innerHTML =
+        `<tr><td colspan="5"><div class="error-msg">Error: ${e.message}</div></td></tr>`;
+    } finally { setLoading('recentRidesWrap', false); }
+  }
+
+  async function loadUsers() {
+    setLoading('usersWrap', true);
+    try {
+      const r = await fetch(`${BASE}/api/admin/users`, { headers: authHeaders() });
+      if (!r.ok) throw new Error(r.status);
+      allUsers = await r.json();
+      renderUsers(allUsers);
+    } catch(e) {
+      document.getElementById('usersTbody').innerHTML =
+        `<tr><td colspan="6"><div class="error-msg">Error: ${e.message}</div></td></tr>`;
+    } finally { setLoading('usersWrap', false); }
+  }
+
+  function renderUsers(users) {
+    const tbody = document.getElementById('usersTbody');
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No users found.</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td style="color:var(--text-dim);font-size:11px">#${u.id}</td>
+        <td>${u.name??'—'}</td>
+        <td style="color:var(--text-muted)">${u.email??'—'}</td>
+        <td>${roleBadge(u.role)}</td>
+        <td style="color:var(--warning)">${u.averageRating!=null?'⭐ '+Number(u.averageRating).toFixed(1):'—'}</td>
+        <td style="color:var(--text-dim);font-size:12px">${u.createdAt?new Date(u.createdAt).toLocaleDateString('en-IN'):'—'}</td>
+      </tr>`).join('');
+  }
+
+  function filterUsers() {
+    const q    = document.getElementById('userSearch').value.toLowerCase();
+    const role = document.getElementById('roleFilter').value;
+    renderUsers(allUsers.filter(u =>
+      (!q || (u.name+u.email).toLowerCase().includes(q)) &&
+      (!role || u.role === role)
+    ));
+  }
+
+  async function loadRides() {
+    setLoading('ridesWrap', true);
+    try {
+      const r = await fetch(`${BASE}/api/admin/rides`, { headers: authHeaders() });
+      if (!r.ok) throw new Error(r.status);
+      const data = await r.json();
+      allRides = Array.isArray(data) ? data : (data.content ?? []);
+      renderRides(allRides);
+    } catch(e) {
+      document.getElementById('ridesTbody').innerHTML =
+        `<tr><td colspan="8"><div class="error-msg">Error: ${e.message}</div></td></tr>`;
+    } finally { setLoading('ridesWrap', false); }
+  }
+
+  function renderRides(rides) {
+    const tbody = document.getElementById('ridesTbody');
+    if (!rides.length) {
+      tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">No rides found.</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = rides.map(rd => `
+      <tr>
+        <td style="color:var(--text-dim);font-size:11px">#${rd.id}</td>
+        <td>${rd.pickupLocation??'—'}</td>
+        <td>${rd.dropLocation??'—'}</td>
+        <td>${rd.driverName??'—'}</td>
+        <td style="text-align:center">${rd.availableSeats??'—'}</td>
+        <td style="color:var(--success)">₹${rd.farePerSeat??'—'}</td>
+        <td>${statusBadge(rd.status)}</td>
+        <td style="color:var(--text-dim);font-size:12px">${rd.departureTime?new Date(rd.departureTime).toLocaleDateString('en-IN'):'—'}</td>
+      </tr>`).join('');
+  }
+
+  function filterRides() {
+    const q      = document.getElementById('rideSearch').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    renderRides(allRides.filter(rd =>
+      (!q || (rd.pickupLocation+rd.dropLocation+(rd.driverName??'')).toLowerCase().includes(q)) &&
+      (!status || rd.status === status)
+    ));
+  }
+
+  async function loadNotifCount() {
+    try {
+      const r = await fetch(`${BASE}/api/notifications/unread-count`, { headers: authHeaders() });
+      if (!r.ok) return;
+      const data = await r.json();
+      document.getElementById('unreadNotifs').textContent = data.count ?? data ?? '—';
+    } catch {}
+  }
+
+  async function loadAll() {
+    document.getElementById('lastUpdated').textContent = 'Refreshing…';
+    await Promise.all([loadStats(), loadRecentRides(), loadUsers(), loadRides(), loadNotifCount()]);
+    document.getElementById('lastUpdated').textContent =
+      'Last updated: '+new Date().toLocaleTimeString('en-IN');
+  }
+
+  function showSection(id) {
+    const sec = document.getElementById('section-'+id);
+    if (sec) sec.scrollIntoView({ behavior:'smooth' });
+  }
+
+  window.onload = () => {
+    if (!getToken()) { window.location.href = 'index.html'; return; }
+    const user = getUser();
+    if (user?.name) document.getElementById('adminName').textContent = user.name;
+    loadAll();
+  };
+</script>
+</body>
+</html>

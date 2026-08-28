@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartRide — Confirm Booking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <!-- Razorpay SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    :root { --bg:#02040c; --purple:#7c3aed; --violet:#a78bfa; --cyan:#22d3ee; --white:#eef2ff; --dim:#64748b; }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; min-height:100%; font-family:'Outfit',sans-serif; color:var(--white); background:var(--bg); }
+    .sky { position:fixed; inset:0; z-index:0;
+      background: radial-gradient(ellipse 70% 55% at 15% 8%, rgba(88,28,220,.52) 0%, transparent 65%),
+        linear-gradient(180deg, #08031e 0%, #02040c 100%); }
+    .glow { position:fixed; border-radius:50%; filter:blur(100px); pointer-events:none; z-index:1; }
+    .ga { width:400px;height:400px;background:rgba(76,29,149,.15); top:-100px;left:-80px; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+    nav { position:fixed;top:0;left:0;right:0;z-index:50;
+      display:flex;align-items:center;padding:1rem 2.6rem;
+      background:rgba(2,4,12,.6); backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,.05); }
+    .logo { font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.07em;
+      background:linear-gradient(120deg,var(--violet),var(--cyan));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none; }
+
+    .page-wrap { position:relative;z-index:10; min-height:100vh;
+      display:flex; align-items:center; justify-content:center; padding:6rem 1.5rem; }
+
+    .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+      border-radius:20px; padding:2.5rem; width:100%; max-width:460px;
+      backdrop-filter:blur(20px); animation:fadeUp .5s ease both; }
+
+    .card-title { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:.04em;
+      background:linear-gradient(120deg,var(--violet),var(--cyan));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; margin-bottom:1.5rem; }
+
+    .route-display { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+      border-radius:12px; padding:1.2rem; margin-bottom:1.5rem; }
+    .route-line { display:flex; align-items:center; gap:.75rem; margin-bottom:.6rem; }
+    .route-dot  { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+    .route-text { font-size:.92rem; color:var(--white); }
+    .route-divider { width:1px;height:18px;background:rgba(255,255,255,.15);margin-left:4px; }
+
+    .fare-summary { margin-bottom:1.5rem; }
+    .fare-row { display:flex; justify-content:space-between; padding:.55rem 0;
+      font-size:.9rem; border-bottom:1px solid rgba(255,255,255,.06); }
+    .fare-row:last-child { border:none; font-size:1.05rem; font-weight:500; padding-top:.8rem; }
+    .fare-lbl { color:var(--dim); }
+    .fare-val  { color:var(--cyan); }
+    .fare-val.total { color:var(--violet); font-size:1.2rem; }
+
+    .btn-pay {
+      width:100%; padding:14px;
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      color:#fff; border:none; border-radius:50px;
+      font-family:'Outfit',sans-serif; font-size:1rem; font-weight:500;
+      cursor:pointer; transition:all .25s;
+    }
+    .btn-pay:hover { box-shadow:0 0 36px rgba(124,58,237,.6); transform:translateY(-1px); }
+    .btn-pay:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+    .ok  { background:rgba(34,211,238,.1); border:1px solid rgba(34,211,238,.3);
+      border-radius:10px; padding:1rem; font-size:.88rem; color:var(--cyan);
+      margin-top:1rem; display:none; text-align:center; }
+    .ok.show { display:block; }
+    .err { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3);
+      border-radius:10px; padding:1rem; font-size:.88rem; color:#fca5a5;
+      margin-top:1rem; display:none; }
+    .err.show { display:block; }
+
+    .back-link { display:block; text-align:center; margin-top:1.2rem;
+      color:var(--dim); font-size:.85rem; text-decoration:none; }
+    .back-link:hover { color:var(--violet); }
+  </style>
+</head>
+<body>
+  <div class="sky"></div>
+  <div class="glow ga"></div>
+  <nav><a href="index.html" class="logo">Smartride</a></nav>
+
+  <div class="page-wrap">
+    <div class="card">
+      <div class="card-title">Confirm Booking</div>
+
+      <div class="route-display">
+        <div class="route-line">
+          <div class="route-dot" style="background:#22d3ee;"></div>
+          <span class="route-text" id="srcText">—</span>
+        </div>
+        <div class="route-divider" style="margin-left:4px;"></div>
+        <div class="route-line" style="margin-bottom:0;">
+          <div class="route-dot" style="background:#f87171;"></div>
+          <span class="route-text" id="dstText">—</span>
+        </div>
+      </div>
+
+      <div class="fare-summary">
+        <div class="fare-row"><span class="fare-lbl">Distance</span><span class="fare-val" id="fDist">—</span></div>
+        <div class="fare-row"><span class="fare-lbl">Passengers</span><span class="fare-val" id="fPass">—</span></div>
+        <div class="fare-row"><span class="fare-lbl">Total fare</span><span class="fare-val" id="fTotal">—</span></div>
+        <div class="fare-row"><span class="fare-lbl">You pay</span><span class="fare-val total" id="fPP">—</span></div>
+      </div>
+
+      <button class="btn-pay" id="payBtn" onclick="initiatePayment()">Pay with Razorpay →</button>
+      <div class="ok"  id="ok"></div>
+      <div class="err" id="err"></div>
+      <a href="dashboard.html" class="back-link">← Back to search</a>
+    </div>
+  </div>
+
+  <script>
+    const API   = 'http://localhost:8080';
+    const token = localStorage.getItem('rw_token');
+    if (!token) window.location.href = 'login.html';
+
+    const fare   = JSON.parse(localStorage.getItem('rw_fare')  || '{}');
+    const route  = JSON.parse(localStorage.getItem('rw_route') || '{}');
+    const rideId = localStorage.getItem('rw_rideId');
+    const user   = JSON.parse(localStorage.getItem('rw_user')  || '{}');
+
+    document.getElementById('srcText').textContent  = route.source      || '—';
+    document.getElementById('dstText').textContent  = route.destination || '—';
+    document.getElementById('fDist').textContent    = fare.distanceKm   ? fare.distanceKm + ' km' : '—';
+    document.getElementById('fPass').textContent    = route.passengerCount || 1;
+    document.getElementById('fTotal').textContent   = fare.totalFare    ? '₹' + fare.totalFare : '—';
+    document.getElementById('fPP').textContent      = fare.perPassengerFare ? '₹' + fare.perPassengerFare : '—';
+
+    async function initiatePayment() {
+      const btn = document.getElementById('payBtn');
+      btn.disabled = true; btn.textContent = 'Creating order…';
+
+      try {
+        const res = await fetch(`${API}/api/payments/create-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ rideId: parseInt(rideId), passengerId: user.id })
+        });
+        const data = await res.json();
+        if (!res.ok) { showErr(data.message || 'Could not create order.'); btn.disabled=false; btn.textContent='Pay with Razorpay →'; return; }
+
+        // Open Razorpay checkout
+        const options = {
+          key: 'rzp_test_YourTestKeyHere',   // ← replace with your test key
+          amount: Math.round(fare.perPassengerFare * 100),
+          currency: 'INR',
+          name: 'Smartride',
+          description: `${route.source} → ${route.destination}`,
+          order_id: data.razorpayOrderId,
+          prefill: { name: user.name, email: user.email },
+          theme: { color: '#7c3aed' },
+          handler: async function(response) {
+            // Verify with backend
+            await fetch(`${API}/api/payments/verify?razorpayOrderId=${response.razorpay_order_id}&razorpayPaymentId=${response.razorpay_payment_id}`,
+              { method:'POST', headers:{ 'Authorization':`Bearer ${token}` } });
+            showOk('Payment successful! Your ride is confirmed. 🎉');
+            btn.textContent = 'Paid ✓';
+            setTimeout(() => window.location.href = 'history.html', 2000);
+          },
+          modal: { ondismiss: function() { btn.disabled=false; btn.textContent='Pay with Razorpay →'; } }
+        };
+        new Razorpay(options).open();
+      } catch(e) {
+        showErr('Cannot reach server.');
+        btn.disabled=false; btn.textContent='Pay with Razorpay →';
+      }
+    }
+
+    function showErr(msg) { const e=document.getElementById('err'); e.textContent=msg; e.classList.add('show'); }
+    function showOk(msg)  { const e=document.getElementById('ok');  e.textContent=msg; e.classList.add('show'); }
+  </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideWave — Notifications</title>
+  <style>
+    :root {
+      --navy-900: #0a0e1a;
+      --navy-800: #0f1528;
+      --navy-700: #151c35;
+      --navy-600: #1e2748;
+      --purple-600: #6c3fc5;
+      --purple-500: #7c4fd4;
+      --purple-400: #9b70e8;
+      --cyan-500:   #06c8d4;
+      --cyan-400:   #22e0eb;
+      --text-primary: #e8eaf6;
+      --text-muted:   #8892b0;
+      --text-dim:     #4a5568;
+      --success: #2dd4a0;
+      --warning: #f5a623;
+      --danger:  #f06292;
+      --border:  rgba(108,63,197,0.22);
+      --card-bg: rgba(21,28,53,0.85);
+      --radius:  14px;
+      --radius-sm: 8px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--navy-900);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width:240px; min-height:100vh; background:var(--navy-800);
+      border-right:1px solid var(--border);
+      display:flex; flex-direction:column;
+      padding:28px 0; position:fixed; top:0; left:0; z-index:100;
+    }
+    .sidebar-logo { padding:0 24px 32px; display:flex; align-items:center; gap:10px; }
+    .logo-icon {
+      width:36px; height:36px;
+      background:linear-gradient(135deg,var(--purple-600),var(--cyan-500));
+      border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px;
+    }
+    .logo-text {
+      font-size:20px; font-weight:700;
+      background:linear-gradient(90deg,var(--purple-400),var(--cyan-400));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .sidebar-label {
+      font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+      color:var(--text-dim); padding:0 24px 10px;
+    }
+    .nav-item {
+      display:flex; align-items:center; gap:12px;
+      padding:11px 24px; font-size:14px; color:var(--text-muted);
+      cursor:pointer; border-left:3px solid transparent;
+      transition:all .2s; text-decoration:none;
+    }
+    .nav-item:hover { color:var(--text-primary); background:rgba(108,63,197,0.08); }
+    .nav-item.active {
+      color:var(--cyan-400); border-left-color:var(--cyan-500);
+      background:rgba(6,200,212,0.07);
+    }
+    .nav-item .icon { font-size:16px; width:20px; text-align:center; }
+    .sidebar-spacer { flex:1; }
+    .user-badge {
+      margin:16px; padding:12px 16px;
+      background:rgba(108,63,197,0.15);
+      border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px;
+    }
+    .user-badge .name { font-weight:600; color:var(--text-primary); }
+    .user-badge .role { font-size:11px; color:var(--purple-400); margin-top:2px; }
+    .logout-btn {
+      margin:8px 16px 0; padding:10px 16px;
+      background:transparent; border:1px solid rgba(240,98,146,0.3);
+      border-radius:var(--radius-sm); color:var(--danger); font-size:13px;
+      cursor:pointer; transition:all .2s; width:calc(100% - 32px); text-align:left;
+    }
+    .logout-btn:hover { background:rgba(240,98,146,0.1); }
+
+    /* MAIN */
+    .main { margin-left:240px; flex:1; padding:32px; }
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:32px;
+    }
+    .page-title { font-size:24px; font-weight:700; }
+    .page-subtitle { font-size:13px; color:var(--text-muted); margin-top:3px; }
+
+    /* TOOLBAR */
+    .toolbar { display:flex; gap:10px; align-items:center; margin-bottom:20px; flex-wrap:wrap; }
+    .filter-tab {
+      padding:7px 16px; background:var(--navy-700); border:1px solid var(--border);
+      border-radius:20px; font-size:13px; color:var(--text-muted); cursor:pointer; transition:all .2s;
+    }
+    .filter-tab.active {
+      background:rgba(6,200,212,0.12); border-color:rgba(6,200,212,0.4); color:var(--cyan-400);
+    }
+    .filter-tab:hover:not(.active) { color:var(--text-primary); }
+    .spacer { flex:1; }
+    .action-btn { padding:8px 16px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; transition:all .2s; border:1px solid; }
+    .btn-cyan { background:rgba(6,200,212,0.1); border-color:rgba(6,200,212,0.3); color:var(--cyan-400); }
+    .btn-cyan:hover { background:rgba(6,200,212,0.2); }
+
+    /* NOTIF CARDS */
+    .notif-list { display:flex; flex-direction:column; gap:10px; }
+    .notif-card {
+      background:var(--card-bg); border:1px solid var(--border);
+      border-radius:var(--radius); padding:18px 20px;
+      display:flex; align-items:flex-start; gap:16px;
+      transition:border-color .2s, background .2s;
+      position:relative; overflow:hidden;
+    }
+    .notif-card.unread { border-color:rgba(108,63,197,0.4); background:rgba(21,28,53,0.97); }
+    .notif-card.unread::before {
+      content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+      background:linear-gradient(180deg,var(--purple-500),var(--cyan-500));
+    }
+    .notif-card:hover { border-color:rgba(108,63,197,0.5); }
+    .notif-icon-wrap {
+      width:42px; height:42px; border-radius:12px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px; flex-shrink:0;
+    }
+    .icon-booking { background:rgba(45,212,160,0.12); }
+    .icon-cancel  { background:rgba(240,98,146,0.12); }
+    .icon-payment { background:rgba(6,200,212,0.12); }
+    .icon-review  { background:rgba(245,166,35,0.12); }
+    .icon-system  { background:rgba(108,63,197,0.12); }
+    .icon-default { background:rgba(108,63,197,0.12); }
+    .notif-body { flex:1; min-width:0; }
+    .notif-title { font-size:14px; font-weight:600; margin-bottom:4px; color:var(--text-primary); }
+    .notif-message { font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:8px; }
+    .notif-meta { display:flex; align-items:center; gap:12px; font-size:11px; color:var(--text-dim); }
+    .unread-dot { width:7px; height:7px; border-radius:50%; background:var(--cyan-500); flex-shrink:0; }
+    .notif-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+    .mark-read-btn {
+      padding:5px 12px; background:transparent;
+      border:1px solid rgba(6,200,212,0.25); border-radius:var(--radius-sm);
+      color:var(--cyan-400); font-size:11px; cursor:pointer; transition:all .2s;
+    }
+    .mark-read-btn:hover { background:rgba(6,200,212,0.1); }
+    .mark-read-btn:disabled { opacity:.4; cursor:default; }
+
+    /* UNREAD BANNER */
+    .unread-banner {
+      background:rgba(108,63,197,0.1); border:1px solid rgba(108,63,197,0.25);
+      border-radius:var(--radius-sm); padding:12px 18px;
+      font-size:13px; color:var(--purple-400); margin-bottom:16px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .unread-count-badge {
+      background:var(--purple-600); color:#fff;
+      font-size:12px; font-weight:700; padding:2px 8px; border-radius:10px;
+    }
+
+    /* EMPTY / SKELETON */
+    .empty-state { text-align:center; padding:60px; color:var(--text-dim); }
+    .empty-state .empty-icon { font-size:48px; margin-bottom:16px; }
+    .empty-state p { font-size:14px; }
+    .skeleton {
+      background:linear-gradient(90deg,var(--navy-700) 25%,var(--navy-600) 50%,var(--navy-700) 75%);
+      background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:var(--radius-sm);
+    }
+    @keyframes shimmer { to { background-position:-200% 0; } }
+    .skeleton-card { height:88px; border-radius:var(--radius); margin-bottom:10px; }
+
+    /* TOAST */
+    #toast {
+      position:fixed; bottom:28px; right:28px;
+      background:var(--navy-700); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:12px 20px;
+      font-size:13px; color:var(--text-primary);
+      opacity:0; transform:translateY(8px); transition:all .3s;
+      z-index:999; pointer-events:none;
+    }
+    #toast.show { opacity:1; transform:translateY(0); }
+
+    @media (max-width:768px) {
+      .sidebar { display:none; }
+      .main { margin-left:0; padding:20px; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      * { transition:none !important; animation:none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🌊</div>
+    <span class="logo-text">RideWave</span>
+  </div>
+  <div class="sidebar-label">Navigation</div>
+  <a class="nav-item" href="admin-dashboard.html"><span class="icon">📊</span> Dashboard</a>
+  <a class="nav-item" href="dashboard.html"><span class="icon">🏠</span> My Rides</a>
+  <a class="nav-item" href="history.html"><span class="icon">📋</span> History</a>
+  <a class="nav-item active" href="notifications.html"><span class="icon">🔔</span> Notifications</a>
+  <div class="sidebar-spacer"></div>
+  <div class="user-badge">
+    <div class="name" id="sidebarName">User</div>
+    <div class="role" id="sidebarRole">Passenger</div>
+  </div>
+  <button class="logout-btn" onclick="logout()">⬅ Sign Out</button>
+</nav>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Notifications</div>
+      <div class="page-subtitle" id="pageSubtitle">Loading…</div>
+    </div>
+  </div>
+
+  <div id="unreadBanner" class="unread-banner" style="display:none">
+    🔔 You have <span class="unread-count-badge" id="bannerCount">0</span> unread notifications.
+    <span class="spacer"></span>
+    <button class="mark-read-btn" onclick="markAllRead()">Mark all as read</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-tab" onclick="setFilter('unread',this)">Unread</button>
+    <button class="filter-tab" onclick="setFilter('BOOKING',this)">Bookings</button>
+    <button class="filter-tab" onclick="setFilter('PAYMENT',this)">Payments</button>
+    <button class="filter-tab" onclick="setFilter('REVIEW',this)">Reviews</button>
+    <button class="filter-tab" onclick="setFilter('CANCEL',this)">Cancellations</button>
+    <div class="spacer"></div>
+    <button class="action-btn btn-cyan" onclick="loadNotifications()">↻ Refresh</button>
+  </div>
+
+  <div id="notifContainer">
+    <div id="skeletonWrap">
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+    </div>
+    <div class="notif-list" id="notifList"></div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  const BASE = 'http://localhost:8080';
+  let allNotifications = [];
+  let currentFilter = 'all';
+
+  function getToken() { return localStorage.getItem('rw_token'); }
+  function getUser()  { try { return JSON.parse(localStorage.getItem('rw_user')); } catch { return null; } }
+  function authHeaders() {
+    return { 'Content-Type':'application/json', 'Authorization':'Bearer '+getToken() };
+  }
+  function logout() {
+    localStorage.removeItem('rw_token');
+    localStorage.removeItem('rw_user');
+    window.location.href = 'index.html';
+  }
+  function toast(msg, color='var(--cyan-400)') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.borderColor = color;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function notifIcon(type) {
+    const t = (type||'').toUpperCase();
+    if (t.includes('BOOKING')) return { cls:'icon-booking', emoji:'🎫' };
+    if (t.includes('CANCEL'))  return { cls:'icon-cancel',  emoji:'❌' };
+    if (t.includes('PAYMENT')) return { cls:'icon-payment', emoji:'💰' };
+    if (t.includes('REVIEW'))  return { cls:'icon-review',  emoji:'⭐' };
+    if (t.includes('SYSTEM'))  return { cls:'icon-system',  emoji:'🔧' };
+    return { cls:'icon-default', emoji:'🔔' };
+  }
+
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr);
+    const m = Math.floor(diff/60000);
+    if (m < 1)  return 'just now';
+    if (m < 60) return m+'m ago';
+    const h = Math.floor(m/60);
+    if (h < 24) return h+'h ago';
+    return Math.floor(h/24)+'d ago';
+  }
+
+  function renderNotifications(list) {
+    const container = document.getElementById('notifList');
+    document.getElementById('skeletonWrap').style.display = 'none';
+    if (!list.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🔕</div>
+          <p>No notifications here.</p>
+        </div>`;
+      return;
+    }
+    container.innerHTML = list.map(n => {
+      const { cls, emoji } = notifIcon(n.type);
+      const unread = !n.read;
+      return `
+        <div class="notif-card ${unread?'unread':''}" id="notif-${n.id}">
+          <div class="notif-icon-wrap ${cls}">${emoji}</div>
+          <div class="notif-body">
+            <div class="notif-title">
+              ${unread?'<span class="unread-dot"></span>&nbsp;':''}
+              ${n.title||(n.type?n.type.replace(/_/g,' '):'Notification')}
+            </div>
+            <div class="notif-message">${n.message||'—'}</div>
+            <div class="notif-meta">
+              <span>${timeAgo(n.createdAt)}</span>
+              ${n.type?`<span>· ${n.type}</span>`:''}
+            </div>
+          </div>
+          <div class="notif-actions">
+            ${unread
+              ? `<button class="mark-read-btn" onclick="markRead(${n.id},this)">Mark read</button>`
+              : `<span style="font-size:11px;color:var(--text-dim)">✓ Read</span>`}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function applyFilter() {
+    let list = [...allNotifications];
+    if (currentFilter === 'unread') {
+      list = list.filter(n => !n.read);
+    } else if (currentFilter !== 'all') {
+      list = list.filter(n => (n.type||'').toUpperCase().includes(currentFilter.toUpperCase()));
+    }
+    renderNotifications(list);
+  }
+
+  function setFilter(f, el) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    applyFilter();
+  }
+
+  async function loadNotifications() {
+    document.getElementById('skeletonWrap').style.display = 'block';
+    document.getElementById('notifList').innerHTML = '';
+    try {
+      const r = await fetch(`${BASE}/api/notifications`, { headers: authHeaders() });
+      if (!r.ok) throw new Error('Status '+r.status);
+      allNotifications = await r.json();
+      const unreadCount = allNotifications.filter(n => !n.read).length;
+      document.getElementById('pageSubtitle').textContent =
+        allNotifications.length+' total · '+unreadCount+' unread';
+      const banner = document.getElementById('unreadBanner');
+      if (unreadCount > 0) {
+        banner.style.display = 'flex';
+        document.getElementById('bannerCount').textContent = unreadCount;
+      } else {
+        banner.style.display = 'none';
+      }
+      applyFilter();
+    } catch(e) {
+      document.getElementById('skeletonWrap').style.display = 'none';
+      document.getElementById('notifList').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load: ${e.message}</p></div>`;
+    }
+  }
+
+  async function markRead(id, btn) {
+    btn.disabled = true; btn.textContent = '…';
+    try {
+      const r = await fetch(`${BASE}/api/notifications/${id}/read`, {
+        method:'PUT', headers: authHeaders()
+      });
+      if (!r.ok) throw new Error(r.status);
+      const notif = allNotifications.find(n => n.id === id);
+      if (notif) notif.read = true;
+      const card = document.getElementById('notif-'+id);
+      if (card) {
+        card.classList.remove('unread');
+        const dot = card.querySelector('.unread-dot');
+        if (dot) dot.remove();
+        btn.parentElement.innerHTML = `<span style="font-size:11px;color:var(--text-dim)">✓ Read</span>`;
+      }
+      const unreadCount = allNotifications.filter(n => !n.read).length;
+      if (unreadCount === 0) document.getElementById('unreadBanner').style.display = 'none';
+      else document.getElementById('bannerCount').textContent = unreadCount;
+      document.getElementById('pageSubtitle').textContent =
+        allNotifications.length+' total · '+unreadCount+' unread';
+    } catch(e) {
+      toast('Failed: '+e.message, 'var(--danger)');
+      btn.disabled = false; btn.textContent = 'Mark read';
+    }
+  }
+
+  async function markAllRead() {
+    const unread = allNotifications.filter(n => !n.read);
+    if (!unread.length) return;
+    try {
+      await Promise.all(unread.map(n =>
+        fetch(`${BASE}/api/notifications/${n.id}/read`, { method:'PUT', headers:authHeaders() })
+      ));
+      allNotifications.forEach(n => n.read = true);
+      toast('All notifications marked as read');
+      document.getElementById('unreadBanner').style.display = 'none';
+      document.getElementById('pageSubtitle').textContent =
+        allNotifications.length+' total · 0 unread';
+      applyFilter();
+    } catch(e) { toast('Some failed: '+e.message, 'var(--danger)'); }
+  }
+
+  window.onload = () => {
+    if (!getToken()) { window.location.href = 'index.html'; return; }
+    const user = getUser();
+    if (user) {
+      document.getElementById('sidebarName').textContent = user.name || 'User';
+      document.getElementById('sidebarRole').textContent = user.role || 'Passenger';
+    }
+    loadNotifications();
+  };
+</script>
+</body>
+</html>

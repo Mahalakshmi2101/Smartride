@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartRide — Register</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+
+    :root {
+      --bg:     #02040c;
+      --purple: #7c3aed;
+      --violet: #a78bfa;
+      --cyan:   #22d3ee;
+      --white:  #eef2ff;
+      --dim:    #64748b;
+      --error:  #f87171;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; min-height:100%; }
+    body {
+      font-family:'Outfit',sans-serif;
+      color:var(--white);
+      background:var(--bg);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      overflow-x:hidden;
+      padding:6rem 1rem 3rem;
+    }
+
+    /* ═══════════════════════
+       SAME NIGHT SKY
+    ═══════════════════════ */
+    .sky {
+      position:fixed; inset:0; z-index:0;
+      background:
+        radial-gradient(ellipse 70% 55% at 15% 8%,  rgba(88,28,220,.52)  0%, transparent 65%),
+        radial-gradient(ellipse 55% 45% at 85% 6%,  rgba(8,110,160,.42)  0%, transparent 60%),
+        radial-gradient(ellipse 100% 50% at 50% 0%, rgba(25,8,75,.85)    0%, transparent 65%),
+        radial-gradient(ellipse 80% 80% at 50% 100%,rgba(4,8,28,.95)     0%, transparent 80%),
+        linear-gradient(180deg,#08031e 0%,#070c28 15%,#060a20 32%,#050818 52%,#030610 72%,#02040c 100%);
+    }
+    .milkyway {
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:radial-gradient(ellipse 140% 22% at 55% 28%,
+        rgba(110,70,230,.08) 0%,rgba(50,110,210,.05) 45%,transparent 70%);
+    }
+    .stars { position:fixed; inset:0; pointer-events:none; z-index:1; }
+    .s1 {
+      position:absolute; width:1px; height:1px; border-radius:50%; background:transparent;
+      box-shadow:
+         42px  18px #fff,  130px  55px rgba(255,255,255,.65), 195px   8px #fff,
+        280px  72px rgba(255,255,255,.5),  340px  33px #fff,  420px  14px rgba(255,255,255,.8),
+        490px  60px #fff,  560px  28px rgba(255,255,255,.55), 625px  45px #fff,
+        700px   9px rgba(255,255,255,.9),  770px  68px #fff,  835px  36px rgba(255,255,255,.5),
+        910px  20px #fff,  975px  58px rgba(255,255,255,.7), 1050px  12px #fff,
+       1115px  44px rgba(255,255,255,.6), 1190px  70px #fff, 1255px  22px rgba(255,255,255,.8),
+       1330px  48px #fff,   68px 110px rgba(255,255,255,.6),  148px 145px #fff,
+        230px  98px rgba(255,255,255,.4),  315px 165px #fff,  395px 130px rgba(255,255,255,.7),
+        475px  88px #fff,  548px 155px rgba(255,255,255,.5),  618px 118px #fff,
+        688px 175px rgba(255,255,255,.8),  755px  92px #fff,  828px 148px rgba(255,255,255,.6),
+        895px 108px #fff,  962px 170px rgba(255,255,255,.4), 1028px 125px #fff,
+       1098px  95px rgba(255,255,255,.7), 1162px 158px #fff, 1235px 112px rgba(255,255,255,.5),
+       1298px  82px #fff,  1365px 145px rgba(255,255,255,.75);
+      animation:tw1 7s ease-in-out infinite alternate;
+    }
+    .s2 {
+      position:absolute; width:2px; height:2px; border-radius:50%; background:transparent;
+      box-shadow:
+         88px  35px rgba(255,255,255,.9),  215px  15px rgba(220,210,255,.85),
+        358px  58px rgba(255,255,255,.8),   448px  25px rgba(210,240,255,.9),
+        532px  78px rgba(255,255,255,.7),   612px  42px rgba(220,210,255,.8),
+        698px  18px rgba(255,255,255,.95),  782px  65px rgba(210,240,255,.75),
+        865px  30px rgba(255,255,255,.9),   945px  72px rgba(220,210,255,.85),
+       1032px  22px rgba(255,255,255,.8),  1118px  55px rgba(210,240,255,.9),
+        142px 128px rgba(255,255,255,.9),   268px 162px rgba(210,240,255,.8),
+        388px 105px rgba(255,255,255,.85),  505px 148px rgba(220,210,255,.9),
+        622px 125px rgba(255,255,255,.7),   738px 168px rgba(210,240,255,.85);
+      animation:tw2 9s ease-in-out infinite alternate; animation-delay:-3s;
+    }
+    .s3 {
+      position:absolute; width:2.5px; height:2.5px; border-radius:50%; background:transparent;
+      filter:drop-shadow(0 0 2.5px rgba(255,255,255,.85));
+      box-shadow:
+        165px  48px rgba(255,255,255,1), 425px  22px rgba(255,248,215,1),
+        672px  55px rgba(215,240,255,1), 918px  30px rgba(255,255,255,1),
+       1168px  45px rgba(255,248,215,1), 295px 138px rgba(215,240,255,1),
+        548px 118px rgba(255,255,255,1), 795px 155px rgba(255,248,215,1);
+      animation:tw3 4.5s ease-in-out infinite alternate; animation-delay:-1.5s;
+    }
+    .s4 {
+      position:absolute; width:3px; height:3px; border-radius:50%; background:transparent;
+      filter:drop-shadow(0 0 3px rgba(160,200,255,.7));
+      box-shadow:
+        320px  42px rgba(147,210,255,.95), 748px  18px rgba(255,225,140,.9),
+       1095px  60px rgba(185,145,255,.95), 498px 135px rgba(147,210,255,.9),
+        845px 158px rgba(255,225,140,.85), 652px 268px rgba(147,210,255,.95);
+      animation:tw4 5.5s ease-in-out infinite alternate; animation-delay:-4s;
+    }
+    @keyframes tw1 { 0%{opacity:.45} 50%{opacity:.85} 100%{opacity:.55} }
+    @keyframes tw2 { 0%{opacity:.55} 50%{opacity:1}   100%{opacity:.65} }
+    @keyframes tw3 { 0%{opacity:.65} 50%{opacity:1}   100%{opacity:.75} }
+    @keyframes tw4 { 0%{opacity:.5}  50%{opacity:.95} 100%{opacity:.6}  }
+
+    .moon {
+      position:fixed; top:52px; right:130px;
+      width:58px; height:58px; border-radius:50%; z-index:2;
+      background:radial-gradient(circle at 40% 40%,#fffdf0 0%,#fef9dc 25%,#fde68a 60%,transparent 100%);
+      box-shadow:0 0 15px 5px rgba(253,230,138,.38),0 0 45px 16px rgba(251,191,36,.14),0 0 85px 32px rgba(251,191,36,.07);
+      opacity:0; animation:moonRise .9s ease .2s forwards;
+    }
+    .moon::after {
+      content:''; position:absolute; top:-3px; left:9px;
+      width:55px; height:55px; border-radius:50%;
+      background:var(--bg); box-shadow:-2px 2px 0 rgba(8,3,28,.98);
+    }
+    @keyframes moonRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    .glow { position:fixed; border-radius:50%; filter:blur(100px); pointer-events:none; z-index:1; animation:gd 16s ease-in-out infinite alternate; }
+    .ga { width:580px;height:460px;background:rgba(76,29,149,.2);   top:-140px;left:-100px; }
+    .gb { width:460px;height:460px;background:rgba(6,182,212,.13);  top:5%;right:-120px;animation-duration:11s;animation-delay:-5s; }
+    .gc { width:300px;height:260px;background:rgba(124,58,237,.11); bottom:18%;left:22%;animation-duration:13s;animation-delay:-8s; }
+    @keyframes gd { from{transform:translate(0,0) scale(1)} to{transform:translate(24px,-18px) scale(1.06)} }
+
+    /* ═══════════════════════
+       NAVBAR
+    ═══════════════════════ */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:50;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1.1rem 2.6rem;
+      background:rgba(2,4,12,.5); backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .logo {
+      font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:.07em;
+      background:linear-gradient(120deg,var(--violet),var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; text-decoration:none;
+    }
+    .nav-link { color:var(--dim); font-size:.88rem; text-decoration:none; transition:color .2s; }
+    .nav-link:hover { color:var(--white); }
+
+    /* ═══════════════════════
+       CARD
+    ═══════════════════════ */
+    .card-wrap {
+      position:relative; z-index:10;
+      width:100%; max-width:460px;
+      opacity:0;
+      animation:cardRise .8s cubic-bezier(0.22,1,0.36,1) .4s forwards;
+    }
+    @keyframes cardRise {
+      from{opacity:0;transform:translateY(32px)}
+      to  {opacity:1;transform:translateY(0)}
+    }
+    .card {
+      background:rgba(255,255,255,.06);
+      backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:2.4rem 2.4rem 2.2rem;
+      box-shadow:0 0 0 1px rgba(124,58,237,.15),0 32px 64px rgba(0,0,0,.45),0 0 80px rgba(124,58,237,.08);
+      position:relative; overflow:hidden;
+    }
+    .card::before {
+      content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(167,139,250,.6),rgba(34,211,238,.4),transparent);
+    }
+
+    .card-icon  { font-size:2rem; margin-bottom:.6rem; display:block; text-align:center; }
+    .card-title {
+      font-family:'Bebas Neue',sans-serif; font-size:2.2rem;
+      letter-spacing:.05em; text-align:center; color:var(--white); line-height:1;
+    }
+    .card-sub   { text-align:center; color:var(--dim); font-size:.875rem; font-weight:300; margin-top:.4rem; margin-bottom:1.6rem; }
+
+    /* ═══════════════════════
+       ROLE TOGGLE — the big feature!
+       Like a switch: DRIVER left, PASSENGER right.
+       The active pill slides under the selected role.
+    ═══════════════════════ */
+    .role-toggle {
+      display:flex;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:14px;
+      padding:5px;
+      margin-bottom:1.6rem;
+      position:relative;
+    }
+
+    /* sliding active background pill */
+    .role-pill {
+      position:absolute;
+      top:5px; left:5px;
+      width:calc(50% - 5px);
+      height:calc(100% - 10px);
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      border-radius:10px;
+      transition:transform .35s cubic-bezier(0.22,1,0.36,1);
+      box-shadow:0 0 20px rgba(124,58,237,.4);
+      z-index:0;
+    }
+    /* when PASSENGER is selected, pill slides right */
+    .role-toggle.passenger .role-pill {
+      transform:translateX(calc(100% + 0px));
+    }
+
+    .role-btn {
+      flex:1; padding:11px 8px;
+      background:none; border:none;
+      color:var(--dim); font-family:'Outfit',sans-serif;
+      font-size:.9rem; font-weight:500;
+      cursor:pointer; border-radius:10px;
+      position:relative; z-index:1;    /* above the pill */
+      transition:color .3s;
+      display:flex; align-items:center; justify-content:center; gap:7px;
+    }
+    .role-btn.active { color:#fff; }
+
+    /* ═══════════════════════
+       FORM
+    ═══════════════════════ */
+    .field { margin-bottom:1rem; }
+    label {
+      display:block; font-size:.78rem; font-weight:500;
+      color:var(--violet); letter-spacing:.06em;
+      text-transform:uppercase; margin-bottom:.4rem;
+    }
+    .input-wrap { position:relative; }
+    .input-icon {
+      position:absolute; left:14px; top:50%;
+      transform:translateY(-50%); font-size:.95rem;
+      opacity:.4; pointer-events:none;
+    }
+    input {
+      width:100%;
+      padding:12px 14px 12px 40px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:12px;
+      color:var(--white);
+      font-family:'Outfit',sans-serif; font-size:.92rem;
+      outline:none;
+      transition:border-color .25s,background .25s,box-shadow .25s;
+    }
+    input::placeholder { color:rgba(255,255,255,.22); }
+    input:focus {
+      border-color:rgba(124,58,237,.7);
+      background:rgba(124,58,237,.08);
+      box-shadow:0 0 0 3px rgba(124,58,237,.15);
+    }
+
+    /* select dropdown (for vehicle type) */
+    select {
+      width:100%;
+      padding:12px 14px 12px 40px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:12px;
+      color:var(--white);
+      font-family:'Outfit',sans-serif; font-size:.92rem;
+      outline:none; cursor:pointer;
+      transition:border-color .25s,background .25s,box-shadow .25s;
+      appearance:none;
+    }
+    select option { background:#0d1026; color:var(--white); }
+    select:focus {
+      border-color:rgba(124,58,237,.7);
+      background:rgba(124,58,237,.08);
+      box-shadow:0 0 0 3px rgba(124,58,237,.15);
+    }
+
+    /* two fields side by side */
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+
+    /*
+      Driver-only fields — hidden when PASSENGER is selected.
+      We animate height to 0 so it collapses smoothly.
+    */
+    .driver-fields {
+      overflow:hidden;
+      max-height:300px;
+      transition:max-height .4s cubic-bezier(0.22,1,0.36,1),
+                 opacity .3s ease,
+                 margin .3s ease;
+      opacity:1;
+    }
+    .driver-fields.hidden {
+      max-height:0;
+      opacity:0;
+      margin-bottom:0;
+      pointer-events:none;
+    }
+
+    /* driver section label */
+    .section-label {
+      font-size:.72rem; font-weight:600; letter-spacing:.12em;
+      text-transform:uppercase; color:rgba(167,139,250,.6);
+      margin:1.2rem 0 .8rem;
+      display:flex; align-items:center; gap:.6rem;
+    }
+    .section-label::after {
+      content:''; flex:1; height:1px;
+      background:rgba(167,139,250,.2);
+    }
+
+    /* error */
+    .error-msg {
+      display:none; background:rgba(248,113,113,.1);
+      border:1px solid rgba(248,113,113,.3); border-radius:10px;
+      color:var(--error); font-size:.85rem;
+      padding:10px 14px; margin-bottom:1rem; text-align:center;
+    }
+    .error-msg.show { display:block; }
+
+    /* submit */
+    .btn-submit {
+      width:100%; padding:14px;
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      color:#fff; border:none; border-radius:12px;
+      font-family:'Outfit',sans-serif; font-size:1rem; font-weight:600;
+      cursor:pointer; letter-spacing:.03em;
+      transition:all .25s;
+      box-shadow:0 0 28px rgba(124,58,237,.35);
+      position:relative; overflow:hidden; margin-top:.5rem;
+    }
+    .btn-submit::after {
+      content:''; position:absolute; top:0; left:-100%;
+      width:100%; height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+      transition:left .45s ease;
+    }
+    .btn-submit:hover::after { left:100%; }
+    .btn-submit:hover { transform:translateY(-1px); box-shadow:0 0 44px rgba(124,58,237,.6); }
+    .btn-submit:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+    .spinner {
+      display:inline-block; width:16px; height:16px;
+      border:2px solid rgba(255,255,255,.3); border-top-color:#fff;
+      border-radius:50%; animation:spin .7s linear infinite;
+      margin-right:8px; vertical-align:middle;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    .card-footer {
+      text-align:center; margin-top:1.4rem;
+      font-size:.875rem; color:var(--dim);
+    }
+    .card-footer a { color:var(--violet); text-decoration:none; font-weight:500; transition:color .2s; }
+    .card-footer a:hover { color:var(--cyan); }
+
+    .pw-toggle {
+      position:absolute; right:13px; top:50%; transform:translateY(-50%);
+      background:none; border:none; cursor:pointer;
+      color:var(--dim); font-size:.85rem; padding:4px; transition:color .2s;
+    }
+    .pw-toggle:hover { color:var(--violet); }
+
+  </style>
+</head>
+<body>
+
+  <!-- night sky -->
+  <div class="sky"></div>
+  <div class="milkyway"></div>
+  <div class="stars">
+    <div class="s1"></div><div class="s2"></div>
+    <div class="s3"></div><div class="s4"></div>
+  </div>
+  <div class="glow ga"></div>
+  <div class="glow gb"></div>
+  <div class="glow gc"></div>
+  <div class="moon"></div>
+
+  <!-- navbar -->
+  <nav>
+    <a href="index.html" class="logo">SmartRide</a>
+    <a href="login.html" class="nav-link">Already have an account? Sign In →</a>
+  </nav>
+
+  <!-- ════ GLASS CARD ════ -->
+  <div class="card-wrap">
+    <div class="card">
+
+      <span class="card-icon">🚀</span>
+      <h1 class="card-title">Create Account</h1>
+      <p class="card-sub">Join thousands riding smarter across India</p>
+
+      <!-- ── ROLE TOGGLE ── -->
+      <!--
+        This is the slider toggle!
+        Clicking DRIVER/PASSENGER:
+        1. Moves the purple pill left or right
+        2. Shows/hides the vehicle fields below
+        3. Sets a hidden variable for form submission
+      -->
+      <div class="role-toggle" id="roleToggle">
+        <div class="role-pill" id="rolePill"></div>
+        <button class="role-btn active" id="btnDriver" onclick="selectRole('DRIVER')">
+          🚗 I'm a Driver
+        </button>
+        <button class="role-btn" id="btnPassenger" onclick="selectRole('PASSENGER')">
+          🧍 I'm a Passenger
+        </button>
+      </div>
+
+      <!-- error box -->
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- ── PERSONAL INFO ── -->
+      <div class="field">
+        <label for="name">Full Name</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="name" placeholder="Rahul Sharma"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="email" placeholder="you@example.com"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone Number</label>
+        <div class="input-wrap">
+          <span class="input-icon">📱</span>
+          <input type="tel" id="phone" placeholder="9876543210" maxlength="10"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" placeholder="Min. 6 characters"/>
+          <button class="pw-toggle" type="button" onclick="togglePw()" id="pwToggle">👁</button>
+        </div>
+      </div>
+
+      <!-- ── DRIVER-ONLY FIELDS (hidden for passengers) ── -->
+      <div class="driver-fields" id="driverFields">
+        <div class="section-label">Vehicle Details</div>
+
+        <div class="field">
+          <label for="carModel">Car Model</label>
+          <div class="input-wrap">
+            <span class="input-icon">🚘</span>
+            <input type="text" id="carModel" placeholder="Toyota Innova"/>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="licensePlate">License Plate</label>
+            <div class="input-wrap">
+              <span class="input-icon">🪪</span>
+              <input type="text" id="licensePlate" placeholder="TN01AB1234"/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="capacity">Seats</label>
+            <div class="input-wrap">
+              <span class="input-icon">💺</span>
+              <input type="number" id="capacity" placeholder="4" min="1" max="10"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="vehicleType">Vehicle Type</label>
+          <div class="input-wrap">
+            <span class="input-icon">🏷️</span>
+            <select id="vehicleType">
+              <option value="">Select type...</option>
+              <option value="SEDAN">Sedan</option>
+              <option value="SUV">SUV</option>
+              <option value="HATCHBACK">Hatchback</option>
+              <option value="MINIVAN">Minivan</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <button class="btn-submit" id="registerBtn" onclick="handleRegister()">
+        Create Account →
+      </button>
+
+      <div class="card-footer">
+        Already have an account? <a href="login.html">Sign In</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // currently selected role — starts as DRIVER
+    let selectedRole = 'DRIVER';
+
+    // ── ROLE TOGGLE ─────────────────────────────────────────
+    function selectRole(role) {
+      selectedRole = role;
+      const toggle      = document.getElementById('roleToggle');
+      const btnDriver    = document.getElementById('btnDriver');
+      const btnPassenger = document.getElementById('btnPassenger');
+      const driverFields = document.getElementById('driverFields');
+
+      if (role === 'DRIVER') {
+        // pill stays LEFT
+        toggle.classList.remove('passenger');
+        btnDriver.classList.add('active');
+        btnPassenger.classList.remove('active');
+        // show vehicle fields smoothly
+        driverFields.classList.remove('hidden');
+      } else {
+        // pill slides RIGHT
+        toggle.classList.add('passenger');
+        btnDriver.classList.remove('active');
+        btnPassenger.classList.add('active');
+        // hide vehicle fields smoothly
+        driverFields.classList.add('hidden');
+      }
+    }
+
+    // ── PASSWORD TOGGLE ──────────────────────────────────────
+    function togglePw() {
+      const input = document.getElementById('password');
+      const btn   = document.getElementById('pwToggle');
+      input.type  = input.type === 'password' ? 'text' : 'password';
+      btn.textContent = input.type === 'password' ? '👁' : '🙈';
+    }
+
+    // ── REGISTER ────────────────────────────────────────────
+    async function handleRegister() {
+      const name     = document.getElementById('name').value.trim();
+      const email    = document.getElementById('email').value.trim();
+      const phone    = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      const btn      = document.getElementById('registerBtn');
+      const errorMsg = document.getElementById('errorMsg');
+
+      // hide previous errors
+      errorMsg.classList.remove('show');
+
+      // ── VALIDATION ──
+      if (!name || !email || !phone || !password) {
+        showError('Please fill in all fields.'); return;
+      }
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters.'); return;
+      }
+      if (phone.length !== 10 || isNaN(phone)) {
+        showError('Please enter a valid 10-digit phone number.'); return;
+      }
+
+      // driver-specific validation
+      if (selectedRole === 'DRIVER') {
+        const carModel     = document.getElementById('carModel').value.trim();
+        const licensePlate = document.getElementById('licensePlate').value.trim();
+        const capacity     = document.getElementById('capacity').value;
+        const vehicleType  = document.getElementById('vehicleType').value;
+        if (!carModel || !licensePlate || !capacity || !vehicleType) {
+          showError('Please fill in all vehicle details.'); return;
+        }
+      }
+
+      // ── BUILD REQUEST BODY ──
+      const body = {
+        name, email, phone, password,
+        role: selectedRole
+      };
+
+      // add vehicle fields only for drivers
+      if (selectedRole === 'DRIVER') {
+        body.carModel     = document.getElementById('carModel').value.trim();
+        body.licensePlate = document.getElementById('licensePlate').value.trim();
+        body.capacity     = parseInt(document.getElementById('capacity').value);
+        body.vehicleType  = document.getElementById('vehicleType').value;
+      }
+
+      // ── SHOW LOADING ──
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Creating account...';
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // ✅ Registered! Save token + info
+          localStorage.setItem('token',  data.token);
+          localStorage.setItem('userId', data.userId);
+          localStorage.setItem('name',   data.name);
+          localStorage.setItem('email',  data.email);
+          localStorage.setItem('role',   data.role);
+
+          btn.innerHTML = '✅ Account Created! Redirecting...';
+          btn.style.background = 'linear-gradient(135deg,#059669,#047857)';
+
+          // redirect based on role
+          setTimeout(() => {
+            if (data.role === 'DRIVER') {
+              window.location.href = 'driver-dashboard.html';
+            } else {
+              window.location.href = 'passenger-dashboard.html';
+            }
+          }, 900);
+
+        } else {
+          showError(data.message || 'Registration failed. Email may already exist.');
+          resetBtn();
+        }
+
+      } catch (err) {
+        showError('Cannot connect to server. Is Spring Boot running?');
+        resetBtn();
+      }
+    }
+
+    function showError(msg) {
+      const errorMsg = document.getElementById('errorMsg');
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('show');
+    }
+    function resetBtn() {
+      const btn = document.getElementById('registerBtn');
+      btn.disabled = false;
+      btn.innerHTML = 'Create Account →';
+      btn.style.background = '';
+    }
+  </script>
+
+</body>
+</html>

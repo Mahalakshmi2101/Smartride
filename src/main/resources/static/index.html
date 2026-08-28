@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartRide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+
+    :root {
+      --bg:     #03050e;
+      --purple: #7c3aed;
+      --violet: #a78bfa;
+      --cyan:   #22d3ee;
+      --white:  #eef2ff;
+      --dim:    #64748b;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; overflow:hidden; }
+    body { font-family:'Outfit',sans-serif; color:var(--white); background:var(--bg); }
+
+    /* ═══════════════════════════════════════
+       NIGHT SKY — deep, vivid, layered
+    ═══════════════════════════════════════ */
+    .sky {
+      position: fixed; inset: 0; z-index: 0;
+      /* Multi-stop gradient: deep indigo at top, dark navy mid, near-black at horizon */
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(76,29,149,.55) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 5%,  rgba(14,116,144,.4) 0%, transparent 55%),
+        radial-gradient(ellipse 90% 60% at 50% 0%,  rgba(30,10,80,.8)   0%, transparent 70%),
+        linear-gradient(180deg,
+          #0a0520 0%,
+          #080e2a 18%,
+          #060c22 35%,
+          #050818 55%,
+          #04060f 75%,
+          #03050e 100%
+        );
+    }
+
+    /* Milky Way band — a soft diagonal glow across the sky */
+    .milkyway {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 120% 25% at 60% 30%,
+          rgba(120,80,220,.09) 0%,
+          rgba(60,120,200,.06) 40%,
+          transparent 70%);
+    }
+
+    /* ═══════════════════════════════════════
+       STARS — 4 layers, different sizes & colours
+       Small white · medium white · large white · coloured giants
+    ═══════════════════════════════════════ */
+    .stars { position:fixed; inset:0; pointer-events:none; z-index:1; }
+
+    /* tiny distant stars */
+    .s1 {
+      position:absolute; width:1px; height:1px;
+      border-radius:50%; background:transparent;
+      box-shadow:
+        42px  18px #fff,  130px  55px rgba(255,255,255,.7),
+        195px  8px #fff,  280px  72px rgba(255,255,255,.5),
+        340px 33px #fff,  420px  14px rgba(255,255,255,.8),
+        490px 60px #fff,  560px  28px rgba(255,255,255,.6),
+        625px 45px #fff,  700px   9px rgba(255,255,255,.9),
+        770px 68px #fff,  835px  36px rgba(255,255,255,.5),
+        910px 20px #fff,  975px  58px rgba(255,255,255,.7),
+       1050px 12px #fff, 1115px  44px rgba(255,255,255,.6),
+       1190px 70px #fff, 1255px  22px rgba(255,255,255,.8),
+       1330px 48px #fff, 1395px   6px rgba(255,255,255,.5),
+        68px 110px #fff,  148px 145px rgba(255,255,255,.6),
+        230px 98px #fff,  315px 165px rgba(255,255,255,.4),
+        395px 130px #fff, 475px  88px rgba(255,255,255,.7),
+        548px 155px #fff, 618px 118px rgba(255,255,255,.5),
+        688px 175px #fff, 755px  92px rgba(255,255,255,.8),
+        828px 148px #fff, 895px 108px rgba(255,255,255,.6),
+        962px 170px #fff,1028px 125px rgba(255,255,255,.4),
+       1098px 95px #fff, 1162px 158px rgba(255,255,255,.7),
+       1235px 112px #fff,1298px  82px rgba(255,255,255,.5),
+       1365px 145px #fff,  25px 210px rgba(255,255,255,.6),
+        105px 245px #fff, 185px 195px rgba(255,255,255,.4),
+        262px 225px #fff, 342px 270px rgba(255,255,255,.7),
+        415px 205px #fff, 492px 252px rgba(255,255,255,.5),
+        568px 218px #fff, 645px 285px rgba(255,255,255,.8),
+        722px 232px #fff, 798px 268px rgba(255,255,255,.4),
+        872px 215px #fff, 948px 278px rgba(255,255,255,.6),
+       1018px 238px #fff,1092px 255px rgba(255,255,255,.7),
+       1165px 222px #fff,1238px 275px rgba(255,255,255,.5),
+       1312px 245px #fff,1378px 208px rgba(255,255,255,.8);
+      animation: tw1 6s ease-in-out infinite alternate;
+    }
+
+    /* medium stars */
+    .s2 {
+      position:absolute; width:2px; height:2px;
+      border-radius:50%; background:transparent;
+      box-shadow:
+        88px  35px rgba(255,255,255,.9),  215px  15px rgba(220,210,255,.85),
+        358px  58px rgba(255,255,255,.8),  448px  25px rgba(210,240,255,.9),
+        532px  78px rgba(255,255,255,.7),  612px  42px rgba(220,210,255,.8),
+        698px  18px rgba(255,255,255,.95), 782px  65px rgba(210,240,255,.75),
+        865px  30px rgba(255,255,255,.9),  945px  72px rgba(220,210,255,.85),
+       1032px  22px rgba(255,255,255,.8), 1118px  55px rgba(210,240,255,.9),
+       1205px  38px rgba(255,255,255,.85),1285px  12px rgba(220,210,255,.7),
+        142px 128px rgba(255,255,255,.9),  268px 162px rgba(210,240,255,.8),
+        388px 105px rgba(255,255,255,.85), 505px 148px rgba(220,210,255,.9),
+        622px 125px rgba(255,255,255,.7),  738px 168px rgba(210,240,255,.85),
+        852px 112px rgba(255,255,255,.9),  968px 155px rgba(220,210,255,.75),
+       1082px 132px rgba(255,255,255,.8), 1198px 145px rgba(210,240,255,.9),
+        58px 248px rgba(255,255,255,.85),  175px 282px rgba(220,210,255,.8),
+        295px 235px rgba(255,255,255,.9),  412px 268px rgba(210,240,255,.85),
+        528px 255px rgba(255,255,255,.7),  645px 238px rgba(220,210,255,.9);
+      animation: tw2 8s ease-in-out infinite alternate;
+      animation-delay: -2s;
+    }
+
+    /* bright large stars */
+    .s3 {
+      position:absolute; width:2.5px; height:2.5px;
+      border-radius:50%; background:transparent;
+      box-shadow:
+        165px  48px rgba(255,255,255,1),
+        425px  22px rgba(255,248,210,1),
+        672px  55px rgba(210,240,255,1),
+        918px  30px rgba(255,255,255,1),
+       1168px  45px rgba(255,248,210,1),
+        295px 138px rgba(210,240,255,1),
+        548px 118px rgba(255,255,255,1),
+        795px 155px rgba(255,248,210,1),
+       1042px 125px rgba(210,240,255,1),
+        125px 262px rgba(255,255,255,1),
+        375px 245px rgba(255,248,210,1),
+        628px 275px rgba(210,240,255,1);
+      /* Cross-sparkle using box-shadow on pseudo — simulated with filter */
+      filter: drop-shadow(0 0 2px rgba(255,255,255,.8));
+      animation: tw3 4s ease-in-out infinite alternate;
+      animation-delay: -1s;
+    }
+
+    /* coloured stars — blue, purple, warm yellow */
+    .s4 {
+      position:absolute; width:3px; height:3px;
+      border-radius:50%; background:transparent;
+      box-shadow:
+        320px  42px rgba(147,210,255,.95),   /* blue */
+        748px  18px rgba(255,220,130,.9),     /* warm yellow */
+       1095px  60px rgba(180,140,255,.95),    /* purple */
+        498px 135px rgba(147,210,255,.9),
+        845px 158px rgba(255,220,130,.85),
+        198px 255px rgba(180,140,255,.9),
+        652px 268px rgba(147,210,255,.95),
+        998px 242px rgba(255,220,130,.9),
+        1252px 118px rgba(180,140,255,.85);
+      filter: drop-shadow(0 0 3px rgba(150,180,255,.6));
+      animation: tw4 5s ease-in-out infinite alternate;
+      animation-delay: -3s;
+    }
+
+    @keyframes tw1 { 0%{opacity:.5} 50%{opacity:.9} 100%{opacity:.6} }
+    @keyframes tw2 { 0%{opacity:.6} 50%{opacity:1}  100%{opacity:.7} }
+    @keyframes tw3 { 0%{opacity:.7} 50%{opacity:1}  100%{opacity:.8} }
+    @keyframes tw4 { 0%{opacity:.5} 50%{opacity:.95}100%{opacity:.65} }
+
+    /* ═══════════════════════════════════════
+       MOON — soft glowing crescent
+    ═══════════════════════════════════════ */
+    .moon {
+      position: fixed;
+      top: 52px; right: 130px;
+      width: 62px; height: 62px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 42%,
+        #fff8e7 0%, #fef3c7 30%, #fde68a 65%, transparent 100%);
+      box-shadow:
+        0 0 18px 6px rgba(253,230,138,.35),
+        0 0 50px 18px rgba(251,191,36,.12),
+        0 0 90px 35px rgba(251,191,36,.06);
+      z-index: 2;
+      opacity: 0;
+      animation: moonRise .8s ease 0.3s forwards;
+    }
+    /* crescent shadow overlay */
+    .moon::after {
+      content: '';
+      position: absolute;
+      top: -4px; left: 10px;
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      background: var(--bg);
+      box-shadow: -2px 2px 0 rgba(10,5,32,.95);
+    }
+    @keyframes moonRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ═══════════════════════════════════════
+       AMBIENT GLOWS
+    ═══════════════════════════════════════ */
+    .glow {
+      position:fixed; border-radius:50%;
+      filter:blur(100px); pointer-events:none; z-index:1;
+      animation:gDrift 16s ease-in-out infinite alternate;
+    }
+    .ga { width:580px;height:460px; background:rgba(76,29,149,.18);  top:-140px;left:-100px; }
+    .gb { width:460px;height:460px; background:rgba(6,182,212,.12);  top:5%;right:-120px; animation-duration:11s;animation-delay:-5s; }
+    .gc { width:320px;height:280px; background:rgba(124,58,237,.1);  bottom:15%;left:25%; animation-duration:13s;animation-delay:-8s; }
+    @keyframes gDrift {
+      from{transform:translate(0,0) scale(1)}
+      to  {transform:translate(25px,-20px) scale(1.06)}
+    }
+
+    /* ═══════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════ */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:50;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1.1rem 2.6rem;
+      background:rgba(3,5,14,.45);
+      backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,.05);
+      opacity:0; animation:fadeUp .6s ease .2s forwards;
+    }
+    .logo {
+      font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:.07em;
+      background:linear-gradient(120deg,var(--violet),var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; text-decoration:none;
+    }
+    .nav-r { display:flex; align-items:center; gap:2rem; }
+    .nav-link { color:var(--dim); font-size:.88rem; text-decoration:none; transition:color .2s; }
+    .nav-link:hover { color:var(--white); }
+    .nav-btn {
+      padding:7px 22px; background:var(--purple); color:#fff;
+      border-radius:50px; font-size:.85rem; font-weight:500;
+      text-decoration:none; transition:all .2s;
+    }
+    .nav-btn:hover { background:var(--violet); box-shadow:0 0 20px rgba(124,58,237,.5); }
+
+    /* ═══════════════════════════════════════
+       HERO TEXT
+    ═══════════════════════════════════════ */
+    .hero {
+      position:fixed; inset:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      z-index:5; padding-bottom:158px;
+      pointer-events:none;
+      text-align:center;
+    }
+    .hero > * { pointer-events:auto; }
+
+    .fade-up { opacity:0; animation:fadeUp .75s ease forwards; }
+    @keyframes fadeUp {
+      from{opacity:0;transform:translateY(20px)}
+      to  {opacity:1;transform:translateY(0)}
+    }
+
+    .tag {
+      font-size:.74rem; letter-spacing:.25em; text-transform:uppercase;
+      color:var(--violet); animation-delay:1.5s;
+    }
+    .title {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(4.8rem,11vw,9.5rem);
+      line-height:.93; letter-spacing:.04em;
+      margin-top:.35rem; animation-delay:1.75s;
+    }
+    .t1 { display:block; color:var(--white); }
+    .t2 {
+      display:block;
+      background:linear-gradient(105deg,var(--purple) 10%,var(--cyan) 90%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .sub {
+      font-size:clamp(.85rem,1.7vw,1rem); color:var(--dim);
+      font-weight:300; max-width:355px; line-height:1.68;
+      margin-top:1rem; animation-delay:1.95s;
+    }
+    .btns {
+      display:flex; gap:.9rem; margin-top:2rem;
+      flex-wrap:wrap; justify-content:center;
+      animation-delay:2.15s;
+    }
+    .btn {
+      padding:13px 34px; border-radius:50px;
+      font-family:'Outfit',sans-serif; font-size:.95rem; font-weight:500;
+      text-decoration:none; border:none; cursor:pointer;
+      transition:transform .25s,box-shadow .25s;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn-fill {
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      color:#fff; box-shadow:0 0 30px rgba(124,58,237,.4);
+    }
+    .btn-fill:hover{box-shadow:0 0 48px rgba(124,58,237,.7)}
+    .btn-ghost {
+      background:rgba(255,255,255,.05); color:var(--white);
+      border:1px solid rgba(255,255,255,.13);
+      backdrop-filter:blur(10px);
+    }
+    .btn-ghost:hover{border-color:rgba(124,58,237,.5);background:rgba(124,58,237,.09)}
+
+    /* ═══════════════════════════════════════
+       GROUND — skyline + road
+    ═══════════════════════════════════════ */
+    .ground {
+      position:fixed; bottom:0; left:0;
+      width:100%; height:145px; z-index:2;
+      background:linear-gradient(180deg,transparent 0%,#080b18 30%,#060810 100%);
+      pointer-events:none;
+    }
+    .skyline-svg { position:absolute; bottom:54px; left:0; width:100%; }
+
+    /* road */
+    .road {
+      position:absolute; bottom:0; left:0;
+      width:100%; height:54px;
+      background:linear-gradient(180deg,#0d1020,#080c18);
+      border-top:1.5px solid rgba(124,58,237,.4);
+    }
+
+    /* dashes: fast during rush, slow after stop */
+    .dashes {
+      position:absolute; top:50%; left:0;
+      width:200%; height:2px;
+      background:repeating-linear-gradient(
+        90deg,
+        transparent 0,transparent 38px,
+        rgba(255,255,255,.4) 38px,rgba(255,255,255,.4) 72px
+      );
+      transform:translateY(-50%);
+      animation:dashFast .2s linear infinite;
+    }
+    .dashes.idle { animation:dashFast 3.5s linear infinite; }
+    @keyframes dashFast { to{transform:translateY(-50%) translateX(-72px)} }
+
+    /* ═══════════════════════════════════════
+       CAR
+       Comes from the RIGHT (positive translateX)
+       Rushes LEFT and stops center.
+       NO blur lines. Just pure speed + stop.
+    ═══════════════════════════════════════ */
+    .car-wrap {
+      position:fixed;
+      bottom:54px; left:0;
+      z-index:10;
+      /* starts far RIGHT off screen */
+      transform:translateX(110vw) scaleX(-1);
+      animation:carRush 1.0s cubic-bezier(0.04,0.6,0.08,1.0) 0.2s forwards;
+      will-change:transform;
+    }
+
+    /*
+      scaleX(-1) flips the car to face LEFT (since it's driving left).
+      Animation:
+        0%   → off screen RIGHT
+        75%  → slight overshoot past center
+        88%  → brake compress
+        100% → settled center
+    */
+    @keyframes carRush {
+      0%   { transform: translateX(110vw)              scaleX(-1); }
+      75%  { transform: translateX(calc(50vw - 125px)) scaleX(-1.04); }
+      88%  { transform: translateX(calc(50vw - 105px)) scaleX(-0.97); }
+      100% { transform: translateX(calc(50vw - 115px)) scaleX(-1); }
+    }
+
+    /* idle bob forever once stopped */
+    .car-inner {
+      position:relative;
+      animation:idleBob 2.8s ease-in-out infinite;
+      animation-delay:1.4s;
+    }
+    @keyframes idleBob {
+      0%,100%{transform:translateY(0)}
+      50%    {transform:translateY(-3px)}
+    }
+
+    .car-svg { width:200px; height:82px; display:block; }
+
+    /* underglow — pulses gently at idle */
+    .car-glow {
+      position:absolute; bottom:-5px; left:50%;
+      transform:translateX(-50%);
+      width:140px; height:14px;
+      background:radial-gradient(ellipse,rgba(124,58,237,.75),transparent 70%);
+      filter:blur(6px); opacity:0;
+      animation:glowPulse 2.8s ease-in-out infinite;
+      animation-delay:1.35s;
+    }
+    @keyframes glowPulse {
+      0%,100%{opacity:.5;transform:translateX(-50%) scaleX(1)}
+      50%    {opacity:1; transform:translateX(-50%) scaleX(1.18)}
+    }
+
+    /* headlight beam (left side — car faces left) */
+    .beam {
+      position:absolute;
+      left:-115px; top:13px;         /* left side because car faces left */
+      width:125px; height:46px;
+      background:linear-gradient(270deg,
+        rgba(253,230,138,.55) 0%,
+        rgba(253,230,138,.12) 55%,
+        transparent 100%);
+      clip-path:polygon(100% 35%,0% 0%,0% 100%,100% 65%);
+      filter:blur(3px); opacity:0;
+      animation:beamOn .4s ease 1.35s forwards;
+    }
+    @keyframes beamOn{to{opacity:1}}
+
+  </style>
+</head>
+<body>
+
+  <!-- deep night sky -->
+  <div class="sky"></div>
+  <div class="milkyway"></div>
+
+  <!-- stars -->
+  <div class="stars">
+    <div class="s1"></div>
+    <div class="s2"></div>
+    <div class="s3"></div>
+    <div class="s4"></div>
+  </div>
+
+  <!-- ambient glow blobs -->
+  <div class="glow ga"></div>
+  <div class="glow gb"></div>
+  <div class="glow gc"></div>
+
+  <!-- moon -->
+  <div class="moon"></div>
+
+  <!-- ── NAVBAR ── -->
+  <nav>
+    <a href="#" class="logo">SmartRide</a>
+    <div class="nav-r">
+      <a href="login.html"    class="nav-link">Sign In</a>
+      <a href="register.html" class="nav-btn">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO TEXT ── -->
+  <div class="hero">
+    <span class="tag fade-up">Smart ride sharing &middot; India</span>
+    <h1 class="title fade-up">
+      <span class="t1">Your Ride.</span>
+      <span class="t2">Your Wave.</span>
+    </h1>
+    <p class="sub fade-up">Find drivers heading your way. Split the cost. Arrive together.</p>
+    <div class="btns fade-up">
+      <a href="register.html" class="btn btn-fill">Start Riding &rarr;</a>
+      <a href="login.html"    class="btn btn-ghost">I have an account</a>
+    </div>
+  </div>
+
+  <!-- ── GROUND: skyline + road ── -->
+  <div class="ground">
+
+    <svg class="skyline-svg" viewBox="0 0 1440 80"
+         xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">
+      <g fill="#07091a">
+        <rect x="0"    y="45" width="55"  height="35"/>
+        <rect x="50"   y="28" width="38"  height="52"/>
+        <rect x="83"   y="38" width="50"  height="42"/>
+        <rect x="128"  y="15" width="30"  height="65"/>
+        <rect x="155"  y="30" width="48"  height="50"/>
+        <rect x="198"  y="40" width="44"  height="40"/>
+        <rect x="237"  y="8"  width="28"  height="72"/>
+        <rect x="260"  y="25" width="58"  height="55"/>
+        <rect x="313"  y="20" width="38"  height="60"/>
+        <rect x="346"  y="42" width="52"  height="38"/>
+        <rect x="393"  y="12" width="32"  height="68"/>
+        <rect x="420"  y="28" width="48"  height="52"/>
+        <rect x="463"  y="18" width="38"  height="62"/>
+        <rect x="496"  y="35" width="52"  height="45"/>
+        <rect x="543"  y="5"  width="28"  height="75"/>
+        <rect x="566"  y="22" width="44"  height="58"/>
+        <rect x="605"  y="38" width="52"  height="42"/>
+        <rect x="652"  y="15" width="38"  height="65"/>
+        <rect x="685"  y="28" width="48"  height="52"/>
+        <rect x="728"  y="8"  width="32"  height="72"/>
+        <rect x="755"  y="35" width="52"  height="45"/>
+        <rect x="802"  y="20" width="38"  height="60"/>
+        <rect x="835"  y="42" width="48"  height="38"/>
+        <rect x="878"  y="10" width="28"  height="70"/>
+        <rect x="901"  y="25" width="58"  height="55"/>
+        <rect x="954"  y="15" width="44"  height="65"/>
+        <rect x="993"  y="38" width="52"  height="42"/>
+        <rect x="1040" y="5"  width="32"  height="75"/>
+        <rect x="1067" y="28" width="48"  height="52"/>
+        <rect x="1110" y="18" width="38"  height="62"/>
+        <rect x="1143" y="35" width="52"  height="45"/>
+        <rect x="1190" y="8"  width="28"  height="72"/>
+        <rect x="1213" y="22" width="58"  height="58"/>
+        <rect x="1266" y="38" width="44"  height="42"/>
+        <rect x="1305" y="12" width="38"  height="68"/>
+        <rect x="1338" y="28" width="52"  height="52"/>
+        <rect x="1385" y="2"  width="55"  height="78"/>
+      </g>
+      <!-- glowing windows -->
+      <g opacity=".8">
+        <rect x="133" y="20" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="133" y="29" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="162" y="35" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="242" y="14" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="242" y="23" width="3" height="3" fill="#22d3ee" rx=".5"/>
+        <rect x="265" y="32" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="398" y="18" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="425" y="34" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="548" y="11" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="548" y="20" width="3" height="3" fill="#a78bfa" rx=".5"/>
+        <rect x="571" y="28" width="3" height="3" fill="#22d3ee" rx=".5"/>
+        <rect x="657" y="21" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="690" y="34" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="733" y="14" width="3" height="3" fill="#22d3ee" rx=".5"/>
+        <rect x="760" y="41" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="883" y="16" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="883" y="25" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="906" y="32" width="3" height="3" fill="#a78bfa" rx=".5"/>
+        <rect x="1045" y="11" width="3" height="3" fill="#a78bfa" rx=".5"/>
+        <rect x="1045" y="20" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="1072" y="34" width="3" height="3" fill="#22d3ee" rx=".5"/>
+        <rect x="1115" y="24" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="1195" y="14" width="3" height="3" fill="#22d3ee" rx=".5"/>
+        <rect x="1218" y="28" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="1310" y="18" width="3" height="3" fill="#fbbf24" rx=".5"/>
+        <rect x="1343" y="34" width="3" height="3" fill="#a78bfa" rx=".5"/>
+        <rect x="1390" y="8"  width="3" height="3" fill="#fbbf24" rx=".5"/>
+      </g>
+    </svg>
+
+    <div class="road">
+      <div class="dashes" id="dashes"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ THE CAR ══════════ -->
+  <div class="car-wrap">
+    <div class="car-inner">
+
+      <div class="beam"></div>
+      <div class="car-glow"></div>
+
+      <!-- Car faces RIGHT by default in SVG.
+           The parent .car-wrap has scaleX(-1) which flips it to face LEFT.
+           So the car visually drives from right → left. -->
+      <svg class="car-svg" viewBox="0 0 200 82" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="body" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stop-color="#4c1d95"/>
+            <stop offset="40%"  stop-color="#2e1065"/>
+            <stop offset="100%" stop-color="#1a0545"/>
+          </linearGradient>
+          <radialGradient id="whl" cx="50%" cy="38%">
+            <stop offset="0%"   stop-color="#334155"/>
+            <stop offset="55%"  stop-color="#0f172a"/>
+            <stop offset="100%" stop-color="#020617"/>
+          </radialGradient>
+          <linearGradient id="glass" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#7dd3fc" stop-opacity=".65"/>
+            <stop offset="100%" stop-color="#1d4ed8" stop-opacity=".4"/>
+          </linearGradient>
+        </defs>
+
+        <!-- ground shadow -->
+        <ellipse cx="100" cy="74" rx="84" ry="5" fill="rgba(0,0,0,.5)"/>
+
+        <!-- chassis -->
+        <rect x="10" y="48" width="180" height="22" rx="6" fill="url(#body)"/>
+
+        <!-- cabin roof -->
+        <path d="M 48 48 L 62 24 L 145 24 L 162 48 Z" fill="url(#body)"/>
+
+        <!-- roof highlight -->
+        <path d="M 68 25 L 142 25"
+              stroke="rgba(167,139,250,.5)" stroke-width="1.2"
+              fill="none" stroke-linecap="round"/>
+
+        <!-- windows -->
+        <path d="M 55 47 L 72 47 L 78 26 L 65 26 Z"   fill="url(#glass)"/>
+        <path d="M 76 47 L 138 47 L 130 26 L 84 26 Z"  fill="url(#glass)"/>
+        <path d="M 140 47 L 155 47 L 145 26 L 133 26 Z" fill="url(#glass)"/>
+
+        <!-- window pillars -->
+        <line x1="82"  y1="26" x2="76"  y2="47" stroke="#1a0545" stroke-width="2.5"/>
+        <line x1="132" y1="26" x2="138" y2="47" stroke="#1a0545" stroke-width="2.5"/>
+
+        <!-- body accent stripe -->
+        <path d="M 14 62 L 186 62"
+              stroke="rgba(124,58,237,.5)" stroke-width="1.5" fill="none"/>
+
+        <!-- headlights (right = front) -->
+        <rect x="177" y="50" width="14" height="8" rx="2" fill="#fde68a"/>
+        <rect x="178" y="51" width="11" height="6" rx="1" fill="#fef9c3" opacity=".95"/>
+
+        <!-- tail lights (left = back) -->
+        <rect x="9"  y="50" width="10" height="8" rx="2" fill="#ef4444"/>
+        <rect x="10" y="51" width="8"  height="6" rx="1" fill="#fca5a5" opacity=".8"/>
+
+        <!-- rear wheel -->
+        <circle cx="48"  cy="69" r="13"  fill="url(#whl)"/>
+        <circle cx="48"  cy="69" r="8.5" fill="#1e293b"/>
+        <circle cx="48"  cy="69" r="4.5" fill="#334155"/>
+        <circle cx="48"  cy="62" r="1.5" fill="#94a3b8"/>
+        <circle cx="48"  cy="76" r="1.5" fill="#94a3b8"/>
+        <circle cx="41"  cy="69" r="1.5" fill="#94a3b8"/>
+        <circle cx="55"  cy="69" r="1.5" fill="#94a3b8"/>
+        <path d="M 39 61 Q 37 66 39 72"
+              stroke="rgba(255,255,255,.12)" stroke-width="2"
+              fill="none" stroke-linecap="round"/>
+
+        <!-- front wheel -->
+        <circle cx="152" cy="69" r="13"  fill="url(#whl)"/>
+        <circle cx="152" cy="69" r="8.5" fill="#1e293b"/>
+        <circle cx="152" cy="69" r="4.5" fill="#334155"/>
+        <circle cx="152" cy="62" r="1.5" fill="#94a3b8"/>
+        <circle cx="152" cy="76" r="1.5" fill="#94a3b8"/>
+        <circle cx="145" cy="69" r="1.5" fill="#94a3b8"/>
+        <circle cx="159" cy="69" r="1.5" fill="#94a3b8"/>
+        <path d="M 143 61 Q 141 66 143 72"
+              stroke="rgba(255,255,255,.12)" stroke-width="2"
+              fill="none" stroke-linecap="round"/>
+      </svg>
+
+    </div>
+  </div>
+
+  <script>
+    // Slow road dashes once car has stopped (~1.3s)
+    setTimeout(() => {
+      document.getElementById('dashes').classList.add('idle');
+    }, 1300);
+  </script>
+
+</body>
+</html>

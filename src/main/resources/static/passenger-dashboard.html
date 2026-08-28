@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartRide — Passenger Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+
+    :root {
+      --bg:     #02040c;
+      --purple: #7c3aed;
+      --violet: #a78bfa;
+      --cyan:   #22d3ee;
+      --green:  #34d399;
+      --amber:  #fbbf24;
+      --red:    #f87171;
+      --white:  #eef2ff;
+      --dim:    #64748b;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'Outfit',sans-serif;
+      color:var(--white);
+      background:var(--bg);
+      min-height:100vh;
+    }
+
+    /* ═══════════════════════════════
+       NIGHT SKY
+    ═══════════════════════════════ */
+    .sky {
+      position:fixed; inset:0; z-index:0;
+      background:
+        radial-gradient(ellipse 70% 55% at 15% 8%,  rgba(88,28,220,.45)  0%, transparent 65%),
+        radial-gradient(ellipse 55% 45% at 85% 6%,  rgba(8,110,160,.35)  0%, transparent 60%),
+        radial-gradient(ellipse 100% 50% at 50% 0%, rgba(25,8,75,.8)     0%, transparent 65%),
+        linear-gradient(180deg,#08031e 0%,#070c28 15%,#060a20 32%,#050818 52%,#030610 72%,#02040c 100%);
+    }
+    .stars { position:fixed; inset:0; pointer-events:none; z-index:1; }
+    .s1 {
+      position:absolute; width:1px; height:1px; border-radius:50%; background:transparent;
+      box-shadow:
+        42px 18px #fff, 130px 55px rgba(255,255,255,.6), 195px 8px #fff,
+        280px 72px rgba(255,255,255,.5), 340px 33px #fff, 490px 60px #fff,
+        560px 28px rgba(255,255,255,.5), 625px 45px #fff, 700px 9px rgba(255,255,255,.9),
+        770px 68px #fff, 910px 20px #fff, 975px 58px rgba(255,255,255,.7),
+        1050px 12px #fff, 1115px 44px rgba(255,255,255,.6), 1190px 70px #fff,
+        1330px 48px #fff, 68px 110px rgba(255,255,255,.6), 230px 98px #fff,
+        395px 130px rgba(255,255,255,.7), 548px 155px #fff, 688px 175px rgba(255,255,255,.8),
+        828px 148px #fff, 962px 170px rgba(255,255,255,.4), 1098px 95px #fff,
+        1235px 112px rgba(255,255,255,.5), 1365px 145px rgba(255,255,255,.75);
+      animation:tw 7s ease-in-out infinite alternate;
+    }
+    .s2 {
+      position:absolute; width:2px; height:2px; border-radius:50%; background:transparent;
+      box-shadow:
+        88px 35px rgba(255,255,255,.9), 358px 58px rgba(255,255,255,.8),
+        532px 78px rgba(255,255,255,.7), 698px 18px rgba(255,255,255,.95),
+        865px 30px rgba(255,255,255,.9), 1032px 22px rgba(255,255,255,.8),
+        142px 128px rgba(255,255,255,.9), 388px 105px rgba(255,255,255,.85),
+        622px 125px rgba(255,255,255,.7), 852px 112px rgba(255,255,255,.9),
+        1082px 132px rgba(255,255,255,.8), 295px 235px rgba(255,255,255,.9);
+      animation:tw 9s ease-in-out infinite alternate; animation-delay:-3s;
+    }
+    .s3 {
+      position:absolute; width:2.5px; height:2.5px; border-radius:50%; background:transparent;
+      filter:drop-shadow(0 0 2px rgba(255,255,255,.8));
+      box-shadow:
+        165px 48px rgba(255,255,255,1), 425px 22px rgba(255,248,215,1),
+        672px 55px rgba(215,240,255,1), 918px 30px rgba(255,255,255,1),
+        548px 118px rgba(255,255,255,1), 795px 155px rgba(255,248,215,1);
+      animation:tw 4.5s ease-in-out infinite alternate; animation-delay:-1.5s;
+    }
+    @keyframes tw { 0%{opacity:.4} 50%{opacity:.9} 100%{opacity:.5} }
+
+    .glow { position:fixed; border-radius:50%; filter:blur(100px); pointer-events:none; z-index:1; }
+    .ga { width:500px;height:400px;background:rgba(76,29,149,.18); top:-120px;left:-80px; }
+    .gb { width:400px;height:400px;background:rgba(6,182,212,.11); top:5%;right:-100px; }
+
+    /* ═══════════════════════════════
+       NAVBAR
+    ═══════════════════════════════ */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1rem 2.4rem;
+      background:rgba(2,4,12,.7); backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .logo {
+      font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:.07em;
+      background:linear-gradient(120deg,var(--violet),var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; text-decoration:none;
+    }
+    .nav-center {
+      display:flex; align-items:center; gap:.4rem;
+      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+      border-radius:50px; padding:4px;
+    }
+    .tab-btn {
+      padding:7px 20px; border:none; border-radius:50px;
+      font-family:'Outfit',sans-serif; font-size:.85rem; font-weight:500;
+      cursor:pointer; transition:all .25s; background:transparent; color:var(--dim);
+    }
+    .tab-btn.active {
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      color:#fff; box-shadow:0 0 16px rgba(124,58,237,.4);
+    }
+    .nav-right { display:flex; align-items:center; gap:1rem; }
+    .nav-name { font-size:.88rem; color:var(--dim); }
+    .nav-name span { color:var(--cyan); font-weight:500; }
+    .logout-btn {
+      padding:6px 16px; background:rgba(248,113,113,.1);
+      border:1px solid rgba(248,113,113,.2); border-radius:50px;
+      color:var(--red); font-size:.82rem; cursor:pointer;
+      font-family:'Outfit',sans-serif; transition:all .2s;
+    }
+    .logout-btn:hover { background:rgba(248,113,113,.2); }
+
+    /* ═══════════════════════════════
+       MAIN
+    ═══════════════════════════════ */
+    main {
+      position:relative; z-index:10;
+      max-width:1000px; margin:0 auto;
+      padding:6.5rem 1.5rem 3rem;
+    }
+
+    .welcome {
+      margin-bottom:2rem;
+      opacity:0; animation:fadeUp .7s ease .2s forwards;
+    }
+    .welcome-tag { font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:.3rem; }
+    .welcome-title {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2rem,5vw,3rem); letter-spacing:.04em;
+    }
+    .welcome-title span { color:var(--cyan); }
+
+    /* stat chips */
+    .stats-row {
+      display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2rem;
+      opacity:0; animation:fadeUp .7s ease .35s forwards;
+    }
+    .stat-chip {
+      display:flex; align-items:center; gap:.7rem;
+      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; padding:.75rem 1.2rem; flex:1; min-width:140px;
+    }
+    .stat-chip-icon { font-size:1.4rem; }
+    .stat-chip-val {
+      font-family:'Bebas Neue',sans-serif; font-size:1.6rem;
+      letter-spacing:.04em; line-height:1;
+      background:linear-gradient(135deg,var(--white),var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .stat-chip-label { font-size:.72rem; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; }
+
+    /* ═══════════════════════════════
+       SEARCH BOX
+    ═══════════════════════════════ */
+    .search-panel {
+      background:rgba(255,255,255,.05);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:20px; padding:1.8rem;
+      margin-bottom:1.5rem; position:relative; overflow:hidden;
+      opacity:0; animation:fadeUp .7s ease .5s forwards;
+    }
+    .search-panel::before {
+      content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(34,211,238,.5),transparent);
+    }
+    .search-title {
+      font-family:'Bebas Neue',sans-serif; font-size:1.3rem;
+      letter-spacing:.05em; margin-bottom:1.2rem;
+      display:flex; align-items:center; gap:.5rem;
+    }
+
+    .search-row {
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr auto;
+      gap:.8rem; align-items:end;
+    }
+    @media(max-width:700px) {
+      .search-row { grid-template-columns:1fr 1fr; }
+    }
+
+    .field { margin-bottom:0; }
+    label {
+      display:block; font-size:.76rem; font-weight:500;
+      color:var(--cyan); letter-spacing:.06em;
+      text-transform:uppercase; margin-bottom:.38rem;
+    }
+    .input-wrap { position:relative; }
+    .iico {
+      position:absolute; left:12px; top:50%;
+      transform:translateY(-50%); font-size:.9rem;
+      opacity:.4; pointer-events:none;
+    }
+    input, select {
+      width:100%;
+      padding:11px 12px 11px 36px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:11px;
+      color:var(--white);
+      font-family:'Outfit',sans-serif; font-size:.9rem;
+      outline:none;
+      transition:border-color .25s,background .25s,box-shadow .25s;
+    }
+    input::placeholder { color:rgba(255,255,255,.22); }
+    input:focus, select:focus {
+      border-color:rgba(34,211,238,.55);
+      background:rgba(34,211,238,.06);
+      box-shadow:0 0 0 3px rgba(34,211,238,.1);
+    }
+    select { appearance:none; cursor:pointer; }
+    select option { background:#0d1026; }
+
+    .btn-search {
+      padding:11px 28px;
+      background:linear-gradient(135deg,#0891b2,#0e7490);
+      color:#fff; border:none; border-radius:11px;
+      font-family:'Outfit',sans-serif; font-size:.95rem; font-weight:600;
+      cursor:pointer; white-space:nowrap;
+      transition:all .25s;
+      box-shadow:0 0 20px rgba(34,211,238,.25);
+    }
+    .btn-search:hover { transform:translateY(-1px); box-shadow:0 0 32px rgba(34,211,238,.45); }
+    .btn-search:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+    /* ═══════════════════════════════
+       RESULTS + BOOKINGS AREA
+    ═══════════════════════════════ */
+    .results-panel {
+      background:rgba(255,255,255,.05);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:20px; padding:1.8rem;
+      position:relative; overflow:hidden;
+      opacity:0; animation:fadeUp .7s ease .65s forwards;
+      min-height:280px;
+    }
+    .results-panel::before {
+      content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(167,139,250,.5),transparent);
+    }
+
+    .section-tabs {
+      display:flex; gap:.5rem; margin-bottom:1.3rem;
+    }
+    .stab {
+      padding:6px 18px; border-radius:50px; border:none;
+      font-family:'Outfit',sans-serif; font-size:.82rem; font-weight:500;
+      cursor:pointer; transition:all .22s;
+      background:rgba(255,255,255,.06); color:var(--dim);
+    }
+    .stab.on {
+      background:rgba(124,58,237,.22);
+      border:1px solid rgba(124,58,237,.4);
+      color:var(--violet);
+    }
+
+    /* ride result card */
+    .ride-card {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; padding:1.1rem 1.2rem;
+      margin-bottom:.85rem;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:1rem; flex-wrap:wrap;
+      transition:border-color .2s, transform .2s;
+      animation:fadeUp .5s ease forwards; opacity:0;
+    }
+    .ride-card:hover {
+      border-color:rgba(34,211,238,.3);
+      transform:translateY(-1px);
+    }
+
+    .ride-info { flex:1; min-width:200px; }
+    .ride-route {
+      display:flex; align-items:center; gap:.5rem;
+      font-weight:600; font-size:1rem; margin-bottom:.45rem;
+    }
+    .ride-route .arrow { color:var(--cyan); }
+    .ride-meta { display:flex; gap:.8rem; flex-wrap:wrap; }
+    .meta-chip {
+      font-size:.75rem; color:var(--dim);
+      display:flex; align-items:center; gap:.3rem;
+    }
+
+    /* driver info on ride card */
+    .driver-info {
+      display:flex; align-items:center; gap:.6rem;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:10px; padding:.5rem .8rem;
+    }
+    .driver-avatar {
+      width:32px; height:32px; border-radius:50%;
+      background:linear-gradient(135deg,var(--purple),var(--cyan));
+      display:flex; align-items:center; justify-content:center;
+      font-size:.85rem; font-weight:600; color:#fff;
+      flex-shrink:0;
+    }
+    .driver-name { font-size:.82rem; font-weight:500; }
+    .driver-label { font-size:.72rem; color:var(--dim); }
+
+    /* price + book button */
+    .ride-action {
+      display:flex; flex-direction:column; align-items:flex-end; gap:.5rem;
+    }
+    .price-tag {
+      font-family:'Bebas Neue',sans-serif; font-size:1.5rem;
+      letter-spacing:.04em;
+      background:linear-gradient(135deg,var(--green),#059669);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .price-label { font-size:.7rem; color:var(--dim); text-align:right; margin-top:-4px; }
+
+    .btn-book {
+      padding:8px 20px;
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      color:#fff; border:none; border-radius:50px;
+      font-family:'Outfit',sans-serif; font-size:.85rem; font-weight:600;
+      cursor:pointer; transition:all .25s;
+      box-shadow:0 0 16px rgba(124,58,237,.3);
+    }
+    .btn-book:hover { transform:translateY(-1px); box-shadow:0 0 28px rgba(124,58,237,.55); }
+    .btn-book:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+    .btn-book.booked {
+      background:linear-gradient(135deg,#059669,#047857);
+      box-shadow:0 0 16px rgba(52,211,153,.3);
+      cursor:default;
+    }
+
+    /* seats selector popup */
+    .seats-row {
+      display:flex; align-items:center; gap:.5rem; margin-top:.3rem;
+    }
+    .seats-row label { font-size:.75rem; color:var(--dim); margin:0; text-transform:none; letter-spacing:0; }
+    .seats-select {
+      width:60px; padding:5px 8px 5px 8px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12); border-radius:8px;
+      color:var(--white); font-family:'Outfit',sans-serif; font-size:.85rem;
+      outline:none; cursor:pointer; appearance:none; text-align:center;
+    }
+
+    /* booking history card */
+    .booking-card {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; padding:1rem 1.2rem;
+      margin-bottom:.8rem;
+      animation:fadeUp .5s ease forwards; opacity:0;
+    }
+    .booking-card:hover { border-color:rgba(124,58,237,.3); }
+
+    .booking-route {
+      display:flex; align-items:center; gap:.5rem;
+      font-weight:600; font-size:.95rem; margin-bottom:.45rem;
+    }
+    .booking-meta { display:flex; gap:.8rem; flex-wrap:wrap; }
+
+    /* badge */
+    .badge {
+      display:inline-block; padding:2px 10px; border-radius:50px;
+      font-size:.72rem; font-weight:600; letter-spacing:.04em;
+    }
+    .badge.confirmed { background:rgba(52,211,153,.15); color:var(--green); border:1px solid rgba(52,211,153,.3); }
+    .badge.pending   { background:rgba(251,191,36,.12);  color:var(--amber); border:1px solid rgba(251,191,36,.3); }
+    .badge.cancelled { background:rgba(248,113,113,.12); color:var(--red);   border:1px solid rgba(248,113,113,.3); }
+
+    /* empty / loading */
+    .empty {
+      text-align:center; padding:2.5rem 1rem;
+      color:var(--dim); font-size:.9rem; line-height:1.6;
+    }
+    .empty-icon { font-size:2.5rem; margin-bottom:.6rem; display:block; }
+    .loading { text-align:center; padding:2rem; color:var(--dim); font-size:.88rem; }
+    .spin {
+      display:inline-block; width:18px; height:18px;
+      border:2px solid rgba(167,139,250,.3); border-top-color:var(--violet);
+      border-radius:50%; animation:spin .7s linear infinite;
+      margin-right:8px; vertical-align:middle;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* modal overlay for booking confirm */
+    .modal-overlay {
+      position:fixed; inset:0; z-index:200;
+      background:rgba(0,0,0,.6); backdrop-filter:blur(8px);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none;
+      transition:opacity .3s;
+    }
+    .modal-overlay.show { opacity:1; pointer-events:auto; }
+    .modal {
+      background:rgba(13,16,38,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:20px; padding:2rem;
+      max-width:380px; width:90%;
+      transform:translateY(20px);
+      transition:transform .35s cubic-bezier(0.22,1,0.36,1);
+      box-shadow:0 0 0 1px rgba(124,58,237,.2), 0 32px 64px rgba(0,0,0,.5);
+      position:relative;
+    }
+    .modal-overlay.show .modal { transform:translateY(0); }
+    .modal-title {
+      font-family:'Bebas Neue',sans-serif; font-size:1.6rem;
+      letter-spacing:.05em; margin-bottom:.4rem;
+    }
+    .modal-sub { color:var(--dim); font-size:.88rem; margin-bottom:1.4rem; line-height:1.5; }
+    .modal-detail {
+      background:rgba(255,255,255,.05); border-radius:12px;
+      padding:1rem; margin-bottom:1.4rem;
+      display:flex; flex-direction:column; gap:.5rem;
+    }
+    .modal-row {
+      display:flex; justify-content:space-between;
+      font-size:.88rem;
+    }
+    .modal-row .k { color:var(--dim); }
+    .modal-row .v { font-weight:500; }
+    .modal-total {
+      border-top:1px solid rgba(255,255,255,.08);
+      padding-top:.5rem; margin-top:.2rem;
+    }
+    .modal-total .v {
+      font-family:'Bebas Neue',sans-serif; font-size:1.3rem;
+      color:var(--green); letter-spacing:.04em;
+    }
+    .modal-btns { display:flex; gap:.8rem; }
+    .btn-cancel-modal {
+      flex:1; padding:12px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:11px; color:var(--dim);
+      font-family:'Outfit',sans-serif; font-size:.9rem;
+      cursor:pointer; transition:all .2s;
+    }
+    .btn-cancel-modal:hover { color:var(--white); background:rgba(255,255,255,.1); }
+    .btn-confirm-modal {
+      flex:2; padding:12px;
+      background:linear-gradient(135deg,var(--purple),#5b21b6);
+      border:none; border-radius:11px; color:#fff;
+      font-family:'Outfit',sans-serif; font-size:.9rem; font-weight:600;
+      cursor:pointer; transition:all .25s;
+      box-shadow:0 0 20px rgba(124,58,237,.3);
+    }
+    .btn-confirm-modal:hover { box-shadow:0 0 32px rgba(124,58,237,.6); }
+    .btn-confirm-modal:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* toast */
+    .toast {
+      position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(80px);
+      background:rgba(52,211,153,.15); border:1px solid rgba(52,211,153,.35);
+      color:var(--green); border-radius:50px;
+      padding:10px 24px; font-size:.9rem; font-weight:500;
+      z-index:300; transition:transform .4s cubic-bezier(0.22,1,0.36,1);
+      backdrop-filter:blur(16px); white-space:nowrap;
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast.error { background:rgba(248,113,113,.15); border-color:rgba(248,113,113,.35); color:var(--red); }
+
+    .spinner {
+      display:inline-block; width:14px; height:14px;
+      border:2px solid rgba(255,255,255,.3); border-top-color:#fff;
+      border-radius:50%; animation:spin .7s linear infinite;
+      margin-right:6px; vertical-align:middle;
+    }
+
+    @keyframes fadeUp {
+      from{opacity:0;transform:translateY(18px)}
+      to  {opacity:1;transform:translateY(0)}
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="sky"></div>
+  <div class="stars"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div>
+  <div class="glow ga"></div>
+  <div class="glow gb"></div>
+
+  <!-- NAVBAR -->
+  <nav>
+    <a href="index.html" class="logo">SmartRide</a>
+    <div class="nav-center">
+      <button class="tab-btn active" onclick="switchMain('search')">🔍 Search Rides</button>
+      <button class="tab-btn"        onclick="switchMain('bookings')">🎟️ My Bookings</button>
+    </div>
+    <div class="nav-right">
+      <div class="nav-name">Hi, <span id="navName">Traveller</span></div>
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- welcome -->
+    <div class="welcome">
+      <div class="welcome-tag">Passenger Dashboard</div>
+      <div class="welcome-title">Where to today, <span id="welcomeName">Traveller</span>? 🧍</div>
+    </div>
+
+    <!-- stats -->
+    <div class="stats-row">
+      <div class="stat-chip">
+        <span class="stat-chip-icon">🎟️</span>
+        <div>
+          <div class="stat-chip-val" id="statBookings">—</div>
+          <div class="stat-chip-label">Rides Booked</div>
+        </div>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-chip-icon">💰</span>
+        <div>
+          <div class="stat-chip-val" id="statSaved">—</div>
+          <div class="stat-chip-label">Total Spent (₹)</div>
+        </div>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-chip-icon">🌿</span>
+        <div>
+          <div class="stat-chip-val" id="statCo2">—</div>
+          <div class="stat-chip-label">CO₂ Saved (kg)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH PANEL -->
+    <div class="search-panel" id="searchSection">
+      <div class="search-title">🔍 Find a Ride</div>
+      <div class="search-row">
+        <div class="field">
+          <label>From</label>
+          <div class="input-wrap">
+            <span class="iico">📍</span>
+            <input type="text" id="srcInput" placeholder="Chennai"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>To</label>
+          <div class="input-wrap">
+            <span class="iico">🏁</span>
+            <input type="text" id="dstInput" placeholder="Bangalore"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <div class="input-wrap">
+            <span class="iico">📅</span>
+            <input type="date" id="dateInput"/>
+          </div>
+        </div>
+        <button class="btn-search" id="searchBtn" onclick="searchRides()">
+          Search →
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULTS / BOOKINGS PANEL -->
+    <div class="results-panel">
+
+      <div class="section-tabs">
+        <button class="stab on" id="tabResults"  onclick="showTab('results')">🚗 Available Rides</button>
+        <button class="stab"    id="tabBookings" onclick="showTab('bookings')">🎟️ My Bookings</button>
+      </div>
+
+      <div id="contentArea">
+        <div class="empty">
+          <span class="empty-icon">🔍</span>
+          Search for rides above to get started!
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- BOOKING CONFIRM MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-title">Confirm Booking 🎟️</div>
+      <p class="modal-sub">Review your ride details before confirming.</p>
+      <div class="modal-detail" id="modalDetail"></div>
+      <div class="modal-btns">
+        <button class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+        <button class="btn-confirm-modal" id="confirmBtn" onclick="confirmBooking()">Confirm & Book</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+
+    // ── AUTH GUARD ────────────────────────────────────────────
+    const token = localStorage.getItem('token');
+    const role  = localStorage.getItem('role');
+    const name  = localStorage.getItem('name');
+
+    if (!token || role !== 'PASSENGER') {
+      window.location.href = 'login.html';
+    }
+
+    const firstName = name ? name.split(' ')[0] : 'Traveller';
+    document.getElementById('navName').textContent     = firstName;
+    document.getElementById('welcomeName').textContent = firstName;
+
+    // set min date to today
+    document.getElementById('dateInput').min = new Date().toISOString().split('T')[0];
+
+    // pending booking details (stored while modal is open)
+    let pendingBooking = null;
+
+    // ── API HELPER ────────────────────────────────────────────
+    async function api(url, method='GET', body=null) {
+      const opts = {
+        method,
+        headers: {
+          'Content-Type':'application/json',
+          'Authorization':'Bearer ' + token
+        }
+      };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(url, opts);
+      return { res, data: await res.json() };
+    }
+
+    // ── TOAST ─────────────────────────────────────────────────
+    function showToast(msg, isError=false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast' + (isError ? ' error' : '');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // ── NAVBAR TAB SWITCH ─────────────────────────────────────
+    function switchMain(tab) {
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs[0].classList.toggle('active', tab === 'search');
+      tabs[1].classList.toggle('active', tab === 'bookings');
+      if (tab === 'bookings') {
+        showTab('bookings');
+        document.querySelector('.results-panel').scrollIntoView({behavior:'smooth'});
+      } else {
+        showTab('results');
+        document.querySelector('.search-panel').scrollIntoView({behavior:'smooth'});
+      }
+    }
+
+    // ── SECTION TAB SWITCH ────────────────────────────────────
+    function showTab(tab) {
+      document.getElementById('tabResults').classList.toggle('on',  tab==='results');
+      document.getElementById('tabBookings').classList.toggle('on', tab==='bookings');
+      if (tab === 'bookings') loadMyBookings();
+    }
+
+    // ── SEARCH RIDES ──────────────────────────────────────────
+    async function searchRides() {
+      const src  = document.getElementById('srcInput').value.trim();
+      const dst  = document.getElementById('dstInput').value.trim();
+      const date = document.getElementById('dateInput').value;
+      const btn  = document.getElementById('searchBtn');
+      const area = document.getElementById('contentArea');
+
+      // switch to results tab
+      document.getElementById('tabResults').classList.add('on');
+      document.getElementById('tabBookings').classList.remove('on');
+
+      area.innerHTML = '<div class="loading"><span class="spin"></span>Searching rides...</div>';
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+
+      try {
+        // Build query string — only include params that are filled
+        const params = new URLSearchParams();
+        if (src)  params.append('source', src);
+        if (dst)  params.append('destination', dst);
+        if (date) params.append('date', date);
+
+        const { res, data } = await api(`/api/rides/search?${params}`);
+
+        if (!res.ok) throw new Error();
+
+        if (!data.length) {
+          area.innerHTML = `
+            <div class="empty">
+              <span class="empty-icon">😔</span>
+              No rides found for this route.<br/>
+              Try different dates or locations!
+            </div>`;
+          return;
+        }
+
+        // render ride cards
+        area.innerHTML = data.map((ride, i) => {
+          const driverInitial = ride.driver?.name?.charAt(0) || '?';
+          const driverName    = ride.driver?.name || 'Unknown';
+          const maxSeats      = ride.availableSeats;
+
+          // build seats options 1..availableSeats
+          const seatOptions = Array.from({length: maxSeats}, (_,k) =>
+            `<option value="${k+1}">${k+1}</option>`
+          ).join('');
+
+          return `
+            <div class="ride-card" style="animation-delay:${i*0.07}s">
+              <div class="ride-info">
+                <div class="ride-route">
+                  <span>${ride.source}</span>
+                  <span class="arrow">→</span>
+                  <span>${ride.destination}</span>
+                </div>
+                <div class="ride-meta">
+                  <span class="meta-chip">📅 ${ride.rideDate}</span>
+                  <span class="meta-chip">🕐 ${ride.rideTime?.slice(0,5)}</span>
+                  <span class="meta-chip">💺 ${ride.availableSeats} seats</span>
+                  ${ride.notes ? `<span class="meta-chip">📝 ${ride.notes}</span>` : ''}
+                </div>
+              </div>
+
+              <div class="driver-info">
+                <div class="driver-avatar">${driverInitial}</div>
+                <div>
+                  <div class="driver-name">${driverName}</div>
+                  <div class="driver-label">Driver</div>
+                </div>
+              </div>
+
+              <div class="ride-action">
+                <div>
+                  <div class="price-tag">₹${ride.pricePerSeat}</div>
+                  <div class="price-label">per seat</div>
+                </div>
+                <div class="seats-row">
+                  <label>Seats:</label>
+                  <select class="seats-select" id="seats_${ride.id}">
+                    ${seatOptions}
+                  </select>
+                </div>
+                <button class="btn-book" id="bookBtn_${ride.id}"
+                        onclick="openModal(${ride.id}, '${ride.source}', '${ride.destination}', '${ride.rideDate}', '${ride.rideTime?.slice(0,5)}', ${ride.pricePerSeat}, '${driverName}')">
+                  Book Now
+                </button>
+              </div>
+            </div>`;
+        }).join('');
+
+      } catch(e) {
+        area.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span>Could not fetch rides. Is Spring Boot running?</div>';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Search →';
+    }
+
+    // ── OPEN BOOKING MODAL ────────────────────────────────────
+    function openModal(rideId, src, dst, date, time, price, driverName) {
+      const seats = parseInt(document.getElementById(`seats_${rideId}`).value);
+      const total = seats * price;
+
+      pendingBooking = { rideId, seats, total, src, dst };
+
+      document.getElementById('modalDetail').innerHTML = `
+        <div class="modal-row"><span class="k">Route</span>      <span class="v">${src} → ${dst}</span></div>
+        <div class="modal-row"><span class="k">Date</span>       <span class="v">${date}</span></div>
+        <div class="modal-row"><span class="k">Time</span>       <span class="v">${time}</span></div>
+        <div class="modal-row"><span class="k">Driver</span>     <span class="v">${driverName}</span></div>
+        <div class="modal-row"><span class="k">Seats</span>      <span class="v">${seats}</span></div>
+        <div class="modal-row"><span class="k">₹${price} × ${seats}</span><span class="v">₹${total}</span></div>
+        <div class="modal-row modal-total"><span class="k">Total</span><span class="v">₹${total}</span></div>
+      `;
+
+      document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('show');
+      pendingBooking = null;
+    }
+
+    // close modal on overlay click
+    document.getElementById('modalOverlay').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('modalOverlay')) closeModal();
+    });
+
+    // ── CONFIRM BOOKING ───────────────────────────────────────
+    async function confirmBooking() {
+      if (!pendingBooking) return;
+      const btn = document.getElementById('confirmBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Booking...';
+
+      try {
+        const { res, data } = await api('/api/bookings', 'POST', {
+          rideId:      pendingBooking.rideId,
+          seatsBooked: pendingBooking.seats
+        });
+
+        if (res.ok) {
+          closeModal();
+          showToast(`✅ Ride booked! ₹${pendingBooking.total} confirmed.`);
+
+          // disable the book button for this ride
+          const bookBtn = document.getElementById(`bookBtn_${pendingBooking.rideId}`);
+          if (bookBtn) {
+            bookBtn.textContent = '✅ Booked!';
+            bookBtn.classList.add('booked');
+            bookBtn.disabled = true;
+          }
+
+          loadStats();
+        } else {
+          showToast(data.message || 'Booking failed.', true);
+        }
+
+      } catch(e) {
+        showToast('Server error. Try again.', true);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Confirm & Book';
+    }
+
+    // ── LOAD MY BOOKINGS ──────────────────────────────────────
+    async function loadMyBookings() {
+      const area = document.getElementById('contentArea');
+      area.innerHTML = '<div class="loading"><span class="spin"></span>Loading your bookings...</div>';
+
+      try {
+        const { res, data } = await api('/api/bookings/my-bookings');
+        if (!res.ok) throw new Error();
+
+        if (!data.length) {
+          area.innerHTML = `
+            <div class="empty">
+              <span class="empty-icon">🎟️</span>
+              No bookings yet!<br/>
+              Search for a ride and book your first seat.
+            </div>`;
+          return;
+        }
+
+        area.innerHTML = data.map((b, i) => `
+          <div class="booking-card" style="animation-delay:${i*0.07}s">
+            <div class="booking-route">
+              <span>${b.ride?.source || '—'}</span>
+              <span style="color:var(--violet)">→</span>
+              <span>${b.ride?.destination || '—'}</span>
+              <span class="badge ${b.status?.toLowerCase()}" style="margin-left:auto">${b.status}</span>
+            </div>
+            <div class="booking-meta">
+              <span class="meta-chip">📅 ${b.ride?.rideDate || '—'}</span>
+              <span class="meta-chip">🕐 ${b.ride?.rideTime?.slice(0,5) || '—'}</span>
+              <span class="meta-chip">💺 ${b.seatsBooked} seat(s)</span>
+              <span class="meta-chip">💰 ₹${b.totalAmount}</span>
+              <span class="meta-chip">🚗 ${b.ride?.driver?.name || '—'}</span>
+            </div>
+          </div>`
+        ).join('');
+
+      } catch(e) {
+        area.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span>Could not load bookings.</div>';
+      }
+    }
+
+    // ── STATS ─────────────────────────────────────────────────
+    async function loadStats() {
+      try {
+        const { data } = await api('/api/bookings/my-bookings');
+        const count    = data.length;
+        const spent    = data.reduce((s,b) => s + (b.totalAmount || 0), 0);
+        // Fun stat: each shared ride saves ~2.3kg CO2 per seat
+        const co2      = (data.reduce((s,b) => s + (b.seatsBooked || 1), 0) * 2.3).toFixed(1);
+
+        document.getElementById('statBookings').textContent = count;
+        document.getElementById('statSaved').textContent    = spent.toLocaleString('en-IN');
+        document.getElementById('statCo2').textContent      = co2;
+      } catch(e) {}
+    }
+
+    // ── LOGOUT ────────────────────────────────────────────────
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    // ── INIT ──────────────────────────────────────────────────
+    loadStats();
+
+  </script>
+</body>
+</html>
