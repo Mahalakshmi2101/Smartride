@@ -26,9 +26,9 @@ public class RouteMatchResponse {
 
     public Long getRideId() { return rideId; }
     public String getDriverName() { return driverName; }
-    public String getOrigin() { return source; }
+    public String getSource() { return source; }
     public String getDestination() { return destination; }
-    public String getDepartureTime() { return departureTime; }
+    public String getRideTime() { return departureTime; }
     public int getAvailableSeats() { return availableSeats; }
     public String getMatchType() { return matchType; }
 }

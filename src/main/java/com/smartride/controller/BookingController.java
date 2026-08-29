@@ -35,7 +35,7 @@ public class BookingController {
     public ResponseEntity<Map<String, Object>> createBooking(@RequestBody Map<String, Object> request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername())
+        User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         Long rideId = Long.valueOf(request.get("rideId").toString());
@@ -68,7 +68,7 @@ public class BookingController {
     public ResponseEntity<Map<String, Object>> getAllBookings() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername())
+        User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         List<Booking> bookings = bookingRepository.findByUser(user);
@@ -96,7 +96,7 @@ public class BookingController {
     public ResponseEntity<Map<String, Object>> getBookingById(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername())
+        User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         return bookingRepository.findByIdAndUser(id, user)
@@ -116,7 +116,7 @@ public class BookingController {
     public ResponseEntity<Map<String, Object>> updateBooking(@PathVariable Long id, @RequestBody Map<String, Object> request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername())
+        User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         Booking booking = bookingRepository.findByIdAndUser(id, user)
@@ -143,7 +143,7 @@ public class BookingController {
     public ResponseEntity<Map<String, Object>> deleteBooking(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername())
+        User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         Booking booking = bookingRepository.findByIdAndUser(id, user)

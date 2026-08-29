@@ -3,7 +3,6 @@ package com.smartride.service;
 import com.smartride.model.User;
 import com.smartride.model.entity.Booking;
 import com.smartride.model.entity.Ride;
-import com.smartride.model.entity.Role;
 import com.smartride.repository.BookingRepository;
 import com.smartride.repository.RideRepository;
 import com.smartride.repository.UserRepository;
@@ -14,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,8 +33,11 @@ class BookingServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    private User passenger;
+    @InjectMocks
+    private BookingService bookingService;
+
     private User driver;
+    private User passenger;
     private Ride ride;
     private Booking booking;
 
@@ -41,87 +45,90 @@ class BookingServiceTest {
     void setUp() {
         driver = new User();
         driver.setId(1L);
-        driver.setName("Driver One");
-        driver.setRole(Role.DRIVER);
+        driver.setEmail("Driver One");
+        driver.setRoles("DRIVER");
 
         passenger = new User();
         passenger.setId(2L);
-        passenger.setName("Passenger One");
-        passenger.setRole(Role.PASSENGER);
+        passenger.setEmail("Passenger One");
+        passenger.setRoles("PASSENGER");
 
         ride = new Ride();
         ride.setId(10L);
         ride.setDriver(driver);
-        ride.setPickupLocation("Chennai Central");
-        ride.setDropLocation("Tambaram");
+        ride.setSource("Chennai Central");
+        ride.setDestination("Tambaram");
         ride.setAvailableSeats(3);
-        ride.setFarePerSeat(50.0);
-        ride.setStatus("ACTIVE");
+        ride.setPricePerSeat(50.0);
+        ride.setRideDate(LocalDate.now().plusDays(1));
+        ride.setRideTime(LocalTime.of(8, 0));
+        ride.setStatus(Ride.RideStatus.ACTIVE);
 
         booking = new Booking();
         booking.setId(100L);
         booking.setRide(ride);
-        booking.setPassenger(passenger);
-        booking.setSeatsBooked(1);
+        booking.setUser(passenger);
+        booking.setNumberOfSeats(1);
         booking.setStatus("CONFIRMED");
     }
 
-    // ── find bookings ─────────────────────────────────────
+    // -- find bookings --
 
     @Test
-    void findByPassenger_returnsBookingList() {
-        when(bookingRepository.findByPassenger(passenger))
-            .thenReturn(List.of(booking));
+    void findByUser_returnsBookingList() {
+        when(bookingRepository.findByUser(passenger))
+                .thenReturn(List.of(booking));
 
-        List<Booking> result = bookingRepository.findByPassenger(passenger);
+        List<Booking> result = bookingRepository.findByUser(passenger);
 
         assertEquals(1, result.size());
         assertEquals("CONFIRMED", result.get(0).getStatus());
-        verify(bookingRepository).findByPassenger(passenger);
+        verify(bookingRepository).findByUser(passenger);
     }
 
     @Test
-    void findByRide_returnsBookingsForRide() {
-        when(bookingRepository.findByRide(ride)).thenReturn(List.of(booking));
+    void findByIdAndUser_returnsBooking() {
+        when(bookingRepository.findByIdAndUser(100L, passenger))
+                .thenReturn(Optional.of(booking));
 
-        List<Booking> result = bookingRepository.findByRide(ride);
+        Optional<Booking> result = bookingRepository.findByIdAndUser(100L, passenger);
 
-        assertFalse(result.isEmpty());
-        assertEquals(ride.getId(), result.get(0).getRide().getId());
+        assertTrue(result.isPresent());
+        assertEquals(ride.getId(), result.get().getRide().getId());
     }
 
-    // ── seat validation ───────────────────────────────────
+    // -- seat validation --
 
     @Test
     void booking_seatsBooked_doesNotExceedAvailable() {
         int requested = 2;
         assertTrue(requested <= ride.getAvailableSeats(),
-            "Booking should not exceed available seats");
+                "Booking should not exceed available seats");
     }
 
     @Test
     void booking_seatsBooked_exceedsAvailable_fails() {
         int requested = 5;
         assertFalse(requested <= ride.getAvailableSeats(),
-            "Should reject booking exceeding seat capacity");
+                "Should reject booking exceeding seat capacity");
     }
 
-    // ── fare calculation ──────────────────────────────────
+    // -- fare calculation --
 
     @Test
     void fareCalculation_singleSeat_isCorrect() {
-        double expected = ride.getFarePerSeat() * booking.getSeatsBooked();
+        double expected = ride.getPricePerSeat()* booking.getNumberOfSeats();
         assertEquals(50.0, expected, 0.001);
     }
 
     @Test
     void fareCalculation_multipleSeats_isCorrect() {
-        booking.setSeatsBooked(2);
-        double expected = ride.getFarePerSeat() * booking.getSeatsBooked();
+        booking.setNumberOfSeats(2);
+        double expected = ride.getPricePerSeat() * booking.getNumberOfSeats();
         assertEquals(100.0, expected, 0.001);
     }
 
-    // ── cancel booking ────────────────────────────────────
+    // -- cancel booking --
 
     @Test
     void cancelBooking_setsStatusCancelled() {
@@ -139,11 +146,11 @@ class BookingServiceTest {
     @Test
     void cancelBooking_restoresRideSeats() {
         int seatsBefore = ride.getAvailableSeats(); // 3
-        ride.setAvailableSeats(seatsBefore + booking.getSeatsBooked());
+        ride.setAvailableSeats(seatsBefore + booking.getNumberOfSeats());
         assertEquals(4, ride.getAvailableSeats());
     }
 
-    // ── save booking ──────────────────────────────────────
+    // -- save booking --
 
     @Test
     void saveBooking_persistsCorrectly() {

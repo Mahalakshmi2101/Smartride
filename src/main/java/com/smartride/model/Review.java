@@ -1,5 +1,4 @@
 package com.smartride.model;
-import com.smartride.model.User;
 import com.smartride.model.entity.Ride;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

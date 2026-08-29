@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,14 +35,23 @@ public class AuthController {
         Map<String, Object> response = new HashMap<>();
         try {
             User user = userService.registerNewUser(
-                request.getEmail(),   // use email as username
+                request.getName(),
+                request.getEmail(),
                 request.getPassword(),
                 request.getRole()
             );
+
+            // generate token immediately so frontend can log in right after register
+            String token = jwtUtils.generateToken(user);
+
             response.put("message", "Registration successful");
-            response.put("username", user.getUsername());
-            response.put("role", user.getRoles());
+            response.put("token",   token);
+            response.put("userId",  user.getId());
+            response.put("name",    user.getName());
+            response.put("email",   user.getEmail());
+            response.put("role",    user.getRoles());
             return ResponseEntity.ok(response);
+
         } catch (RuntimeException e) {
             response.put("message", e.getMessage());
             return ResponseEntity.status(400).body(response);
@@ -55,26 +63,26 @@ public class AuthController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                    request.getUsername(),
+                    request.getEmail(),
                     request.getPassword()
                 )
             );
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtUtils.generateToken(userDetails);
+            User user = (User) authentication.getPrincipal();
+            String token = jwtUtils.generateToken(user);
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Login successful");
-            response.put("token", token);
-            response.put("username", userDetails.getUsername());
-            response.put("roles", userDetails.getAuthorities().stream()
-                .map(auth -> auth.getAuthority().replace("ROLE_", ""))
-                .collect(Collectors.toList()));
-
+            response.put("token",   token);
+            response.put("userId",  user.getId());
+            response.put("name",    user.getName());
+            response.put("email",   user.getEmail());
+            response.put("role",    user.getRoles());
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
-            response.put("error", "Invalid username or password");
+            response.put("message", "Invalid email or password");
             return ResponseEntity.status(401).body(response);
         }
     }
@@ -90,14 +98,13 @@ public class AuthController {
             return ResponseEntity.status(401).body(response);
         }
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
 
         Map<String, Object> response = new HashMap<>();
-        response.put("username", userDetails.getUsername());
-        response.put("roles", userDetails.getAuthorities().stream()
-            .map(auth -> auth.getAuthority().replace("ROLE_", ""))
-            .collect(Collectors.toList()));
-
+        response.put("userId", user.getId());
+        response.put("name",   user.getName());
+        response.put("email",  user.getEmail());
+        response.put("role",   user.getRoles());
         return ResponseEntity.ok(response);
     }
 }

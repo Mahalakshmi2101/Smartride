@@ -22,9 +22,9 @@ public class FareRequest {
 
     public FareRequest() {}
 
-    public Double getOriginLat() { return sourceLat; }
+    public Double getSourceLat() { return sourceLat; }
     public void setSourceLat(Double sourceLat) { this.sourceLat = sourceLat; }
-    public Double getOriginLng() { return sourceLng; }
+    public Double getSourceLng() { return sourceLng; }
     public void setSourceLng(Double sourceLng) { this.sourceLng = sourceLng; }
     public Double getDestLat() { return destLat; }
     public void setDestLat(Double destLat) { this.destLat = destLat; }

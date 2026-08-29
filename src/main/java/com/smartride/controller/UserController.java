@@ -26,7 +26,7 @@ public class UserController {
             .map(user -> {
                 Map<String, Object> userMap = new HashMap<>();
                 userMap.put("id", user.getId());
-                userMap.put("username", user.getUsername());
+                userMap.put("username", user.getEmail());
                 userMap.put("roles", user.getRoles());
                 return userMap;
             })
@@ -45,7 +45,7 @@ public class UserController {
             .map(user -> {
                 Map<String, Object> response = new HashMap<>();
                 response.put("id", user.getId());
-                response.put("username", user.getUsername());
+                response.put("username", user.getEmail());
                 response.put("roles", user.getRoles());
                 return ResponseEntity.ok(response);
             })

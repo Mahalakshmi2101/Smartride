@@ -1,71 +1,78 @@
 package com.smartride.model.entity;
-
 import com.smartride.model.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;  // ✅ ONLY this, @Future removed
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
 
+// This is the "Notice Board Post" — every ride a driver offers
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "rides")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Ride {
-
-    public enum RideStatus {
-        ACTIVE, COMPLETED, CANCELLED
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String origin;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_id", nullable = false)
+    private User driver;
 
     @Column(nullable = false)
+    @NotBlank(message = "Source is required")
+    private String source;
+
+    @Column(nullable = false)
+    @NotBlank(message = "Destination is required")
     private String destination;
 
-    @Column(nullable = false)
-    private LocalDateTime departureTime;
+    @Column(name = "ride_date", nullable = false)
+    @FutureOrPresent(message = "Ride date must be today or in the future")
+    private LocalDate rideDate;
 
-    @Column(nullable = false)
+    @Column(name = "ride_time", nullable = false)
+    private LocalTime rideTime;
+
+    @Column(name = "available_seats", nullable = false)
+    @Min(value = 0, message = "Seats cannot be negative")  // ✅ CHANGED 1 → 0
     private Integer availableSeats;
 
-    @Column(nullable = false)
-    private Double price;
+    @Column(name = "price_per_seat", nullable = false)
+    @Min(value = 0, message = "Price cannot be negative")
+    private Double pricePerSeat;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RideStatus status = RideStatus.ACTIVE;
 
-    @ManyToOne
-    @JoinColumn(name = "driver_id", nullable = false)
-    private User driver;
+    @Column(length = 500)
+    private String notes;
 
-    public Ride() {}
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    public Ride(String origin, String destination, LocalDateTime departureTime,
-                Integer availableSeats, Double price, User driver) {
-        this.origin = origin;
-        this.destination = destination;
-        this.departureTime = departureTime;
-        this.availableSeats = availableSeats;
-        this.price = price;
-        this.driver = driver;
-        this.status = RideStatus.ACTIVE;
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        if (this.status == null) {
+            this.status = RideStatus.ACTIVE;
+        }
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getOrigin() { return origin; }
-    public void setOrigin(String origin) { this.origin = origin; }
-    public String getDestination() { return destination; }
-    public void setDestination(String destination) { this.destination = destination; }
-    public LocalDateTime getDepartureTime() { return departureTime; }
-    public void setDepartureTime(LocalDateTime departureTime) { this.departureTime = departureTime; }
-    public Integer getAvailableSeats() { return availableSeats; }
-    public void setAvailableSeats(Integer availableSeats) { this.availableSeats = availableSeats; }
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
-    public RideStatus getStatus() { return status; }
-    public void setStatus(RideStatus status) { this.status = status; }
-    public User getDriver() { return driver; }
-    public void setDriver(User driver) { this.driver = driver; }
+    public enum RideStatus {
+        ACTIVE,
+        COMPLETED,
+        CANCELLED
+    }
 }

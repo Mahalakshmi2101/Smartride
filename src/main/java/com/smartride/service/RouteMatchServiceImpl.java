@@ -19,9 +19,9 @@ public class RouteMatchServiceImpl implements RouteMatchService {
     public List<RouteMatchResponse> findDirectMatches(String source, String destination) {
         // Exact source+destination match — available rides only
         return rideRepository.findAll().stream()
-            .filter(ride -> ride.getOrigin() != null && ride.getDestination() != null)
+            .filter(ride -> ride.getSource() != null && ride.getDestination() != null)
             .filter(ride ->
-                ride.getOrigin().equalsIgnoreCase(source) &&
+                ride.getSource().equalsIgnoreCase(source) &&
                 ride.getDestination().equalsIgnoreCase(destination))
             .filter(ride -> ride.getAvailableSeats() > 0)
             .map(ride -> toResponse(ride, "DIRECT"))
@@ -34,9 +34,9 @@ public class RouteMatchServiceImpl implements RouteMatchService {
         List<RouteMatchResponse> direct = findDirectMatches(source, destination);
 
         List<RouteMatchResponse> partial = rideRepository.findAll().stream()
-            .filter(ride -> ride.getOrigin() != null && ride.getDestination() != null)
+            .filter(ride -> ride.getSource() != null && ride.getDestination() != null)
             .filter(ride ->
-                ride.getOrigin().equalsIgnoreCase(source) &&
+                ride.getSource().equalsIgnoreCase(source) &&
                 !ride.getDestination().equalsIgnoreCase(destination))
             .filter(ride -> ride.getAvailableSeats() > 0)
             .map(ride -> toResponse(ride, "PARTIAL"))
@@ -48,15 +48,15 @@ public class RouteMatchServiceImpl implements RouteMatchService {
 
     private RouteMatchResponse toResponse(Ride ride, String matchType) {
     	String driverName = ride.getDriver() != null
-    	        ? ride.getDriver().getUsername()
+    	        ? ride.getDriver().getEmail()
     	        : "Unknown";
 
         return new RouteMatchResponse(
             ride.getId(),
             driverName,
-            ride.getOrigin(),
+            ride.getSource(),
             ride.getDestination(),
-            ride.getDepartureTime() != null ? ride.getDepartureTime().toString() : "N/A",
+            ride.getRideTime() != null ? ride.getRideTime().toString() : "N/A",
             ride.getAvailableSeats(),
             matchType
         );

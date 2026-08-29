@@ -1,6 +1,5 @@
 package com.smartride.model;
 import com.smartride.model.entity.Ride;
-import com.smartride.model.User;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

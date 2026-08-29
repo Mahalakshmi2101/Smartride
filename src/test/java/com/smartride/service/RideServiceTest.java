@@ -2,15 +2,17 @@ package com.smartride.service;
 
 import com.smartride.model.User;
 import com.smartride.model.entity.Ride;
-import com.smartride.model.entity.Role;
 import com.smartride.repository.RideRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +25,9 @@ class RideServiceTest {
     @Mock
     private RideRepository rideRepository;
 
+    @InjectMocks
+    private RideService rideService;
+
     private User driver;
     private Ride ride;
 
@@ -30,21 +35,22 @@ class RideServiceTest {
     void setUp() {
         driver = new User();
         driver.setId(1L);
-        driver.setName("Driver Raj");
-        driver.setRole(Role.DRIVER);
+        driver.setEmail("Driver Raj");
+        driver.setRoles("DRIVER");
 
         ride = new Ride();
         ride.setId(10L);
         ride.setDriver(driver);
-        ride.setPickupLocation("Anna Nagar");
-        ride.setDropLocation("OMR");
+        ride.setSource("Anna Nagar");
+        ride.setDestination("OMR");
         ride.setAvailableSeats(4);
-        ride.setFarePerSeat(80.0);
-        ride.setDepartureTime(LocalDateTime.now().plusHours(2));
-        ride.setStatus("ACTIVE");
+        ride.setPricePerSeat(80.0);
+        ride.setRideDate(LocalDate.now().plusDays(1));
+        ride.setRideTime(LocalTime.of(9, 0));
+        ride.setStatus(Ride.RideStatus.ACTIVE);
     }
 
-    // ── find rides ────────────────────────────────────────
+    // -- find rides --
 
     @Test
     void findById_existingRide_returnsRide() {
@@ -53,30 +59,31 @@ class RideServiceTest {
         Optional<Ride> result = rideRepository.findById(10L);
 
         assertTrue(result.isPresent());
-        assertEquals("Anna Nagar", result.get().getPickupLocation());
+        assertEquals("Anna Nagar", result.get().getSource());
     }
 
     @Test
     void findById_missingRide_returnsEmpty() {
         when(rideRepository.findById(99L)).thenReturn(Optional.empty());
+
         assertTrue(rideRepository.findById(99L).isEmpty());
     }
 
     @Test
-    void findByDriver_returnsDriverRides() {
-        when(rideRepository.findByDriver(driver)).thenReturn(List.of(ride));
+    void findAll_returnsAllRides() {
+        when(rideRepository.findAll()).thenReturn(List.of(ride));
 
-        List<Ride> rides = rideRepository.findByDriver(driver);
+        List<Ride> rides = rideRepository.findAll();
 
         assertEquals(1, rides.size());
-        assertEquals("Driver Raj", rides.get(0).getDriver().getName());
+        assertEquals("Driver Raj", rides.get(0).getDriver().getEmail());
     }
 
-    // ── status checks ─────────────────────────────────────
+    // -- status checks --
 
     @Test
     void ride_activeStatus_isBookable() {
-        assertEquals("ACTIVE", ride.getStatus());
+        assertEquals(Ride.RideStatus.ACTIVE, ride.getStatus());
         assertTrue(ride.getAvailableSeats() > 0);
     }
 
@@ -88,37 +95,37 @@ class RideServiceTest {
 
     @Test
     void ride_cancelledStatus_isNotBookable() {
-        ride.setStatus("CANCELLED");
-        assertNotEquals("ACTIVE", ride.getStatus());
+        ride.setStatus(Ride.RideStatus.CANCELLED);
+        assertNotEquals(Ride.RideStatus.ACTIVE, ride.getStatus());
     }
 
-    // ── fare ──────────────────────────────────────────────
+    // -- fare --
 
     @Test
-    void ride_farePerSeat_isPositive() {
-        assertTrue(ride.getFarePerSeat() > 0);
-    }
-
-    @Test
-    void ride_zeroFare_isInvalid() {
-        ride.setFarePerSeat(0.0);
-        assertFalse(ride.getFarePerSeat() > 0);
-    }
-
-    // ── departure time ────────────────────────────────────
-
-    @Test
-    void ride_departureTime_isInFuture() {
-        assertTrue(ride.getDepartureTime().isAfter(LocalDateTime.now()));
+    void ride_pricePerSeat_isPositive() {
+        assertTrue(ride.getPricePerSeat()> 0);
     }
 
     @Test
-    void ride_pastDepartureTime_isInvalid() {
-        ride.setDepartureTime(LocalDateTime.now().minusHours(1));
-        assertFalse(ride.getDepartureTime().isAfter(LocalDateTime.now()));
+    void ride_zeroPricePerSeat_isInvalid() {
+        ride.setPricePerSeat(0.0);
+        assertFalse(ride.getPricePerSeat() > 0);
     }
 
-    // ── save ──────────────────────────────────────────────
+    // -- departure date --
+
+    @Test
+    void ride_departureDateInFuture_isValid() {
+        assertTrue(ride.getRideDate().isAfter(LocalDate.now().minusDays(1)));
+    }
+
+    @Test
+    void ride_pastDepartureDate_isInvalid() {
+        ride.setRideDate(LocalDate.now().minusDays(1));
+        assertFalse(ride.getRideDate().isAfter(LocalDate.now()));
+    }
+
+    // -- save --
 
     @Test
     void saveRide_persistsCorrectly() {
@@ -134,14 +141,13 @@ class RideServiceTest {
     @Test
     void findAllActiveRides_returnsOnlyActive() {
         Ride cancelled = new Ride();
-        cancelled.setStatus("CANCELLED");
+        cancelled.setStatus(Ride.RideStatus.CANCELLED);
 
         when(rideRepository.findAll()).thenReturn(List.of(ride, cancelled));
 
-        List<Ride> all = rideRepository.findAll();
-        long activeCount = all.stream()
-            .filter(r -> "ACTIVE".equals(r.getStatus()))
-            .count();
+        long activeCount = rideRepository.findAll().stream()
+                .filter(r -> Ride.RideStatus.ACTIVE.equals(r.getStatus()))
+                .count();
 
         assertEquals(1, activeCount);
     }

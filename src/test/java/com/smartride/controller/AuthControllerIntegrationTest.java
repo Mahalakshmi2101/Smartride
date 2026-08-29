@@ -40,7 +40,6 @@ class AuthControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(req)))
             .andExpect(status().isOk());
     }
-
     @Test
     void register_duplicateEmail_returns4xx() throws Exception {
         RegisterRequest req = new RegisterRequest();

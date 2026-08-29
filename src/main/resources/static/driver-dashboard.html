@@ -722,7 +722,7 @@
           try {
             const { data: bookings } = await api(`/api/bookings/ride/${ride.id}`);
             totalBookings += bookings.length;
-            bookings.forEach(b => totalEarnings += (b.totalAmount || 0));
+            bookings.forEach(b => totalEarnings += ((b.numberOfSeats || 0) * (b.ride?.pricePerSeat || 0)));
           } catch(e) {}
         }
         document.getElementById('statBookings').textContent = totalBookings;

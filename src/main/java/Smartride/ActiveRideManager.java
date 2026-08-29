@@ -3,9 +3,6 @@ package Smartride;
 import com.smartride.model.User;
 import com.smartride.util.GenericCache;
 import com.smartride.model.entity.Booking;
-import com.smartride.repository.BookingRepository;
-
-import java.util.HashMap;
 import java.util.Optional;
 
 public class ActiveRideManager {
@@ -37,10 +34,10 @@ public class ActiveRideManager {
 
 	public double getTotalActiveFare() {
 		return h1.values().stream().filter(b -> b.getStatus().equals("CONFIRMED"))
-				.mapToDouble(b -> b.getRide().getPrice() * b.getNumberOfSeats()).sum();
+				.mapToDouble(b -> b.getRide().getPricePerSeat()* b.getNumberOfSeats()).sum();
 	}
 	public java.util.List<String> getActiveCustomerUsernames(){
-		return h1.values().stream().filter(b -> b.getStatus().equals("CONFIRMED")).map(b -> b.getUser().getUsername()).collect(java.util.stream.Collectors.toList());}
+		return h1.values().stream().filter(b -> b.getStatus().equals("CONFIRMED")).map(b -> b.getUser().getEmail()).collect(java.util.stream.Collectors.toList());}
 
 	public static void main(String[] args) {
 		ActiveRideManager manager = new ActiveRideManager();
@@ -66,7 +63,7 @@ public class ActiveRideManager {
 	
 
 		System.out.println("Booking 2 status: " + manager.getBooking(2L).getStatus());
-		System.out.println("Booking 2 rider: " + manager.getBooking(2L).getUser().getUsername());
+		System.out.println("Booking 2 rider: " + manager.getBooking(2L).getUser().getEmail());
 		manager.removeBooking(2L);
 		System.out.println("After removal : " + manager.getBooking(2L));
 

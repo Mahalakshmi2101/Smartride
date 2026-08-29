@@ -34,7 +34,7 @@ public class FareServiceImpl implements FareService {
 
         // Step 2: Get real road distance from OSRM
         double distanceKm = distanceService.getDistanceKm(
-            request.getOriginLat(), request.getOriginLng(),
+            request.getSourceLat(), request.getSourceLng(),
             request.getDestLat(), request.getDestLng()
         );
 

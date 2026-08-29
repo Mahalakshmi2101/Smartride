@@ -11,28 +11,28 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService implements UserDetailsService {
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
-    
+
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        return user;
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
     }
-    
-    public User registerNewUser(String username, String rawPassword, String role) {
-        if (userRepository.findByUsername(username).isPresent()) {
+
+    public User registerNewUser(String name, String email, String rawPassword, String role) {
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email already exists.");
         }
         User user = new User();
-        user.setUsername(username);
+        user.setName(name);
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(rawPassword));
-        user.setRoles(role != null ? role : "USER");
+        user.setRoles(role != null ? role : "PASSENGER");
         return userRepository.save(user);
     }
 }

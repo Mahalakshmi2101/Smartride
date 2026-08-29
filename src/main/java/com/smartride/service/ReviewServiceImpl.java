@@ -35,14 +35,14 @@ public class ReviewServiceImpl implements ReviewService {
             request.getRating(), request.getComment());
         reviewRepository.save(review);
 
-        return new ReviewResponse(review.getId(), reviewer.getUsername(),
+        return new ReviewResponse(review.getId(), reviewer.getEmail(),
                 review.getRating(), review.getComment(), review.getCreatedAt());
     }
 
     @Override
     public List<ReviewResponse> getReviewsForUser(Long userId) {
         return reviewRepository.findByRevieweeId(userId).stream()
-        		.map(r -> new ReviewResponse(r.getId(), r.getReviewer().getUsername(),
+        		.map(r -> new ReviewResponse(r.getId(), r.getReviewer().getEmail(),
         		        r.getRating(), r.getComment(), r.getCreatedAt()))
         		 .collect(Collectors.toList());
     }
