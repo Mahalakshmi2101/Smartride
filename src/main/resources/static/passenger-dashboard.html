@@ -621,10 +621,8 @@
     document.getElementById('navName').textContent     = firstName;
     document.getElementById('welcomeName').textContent = firstName;
 
-    // set min date to today
     document.getElementById('dateInput').min = new Date().toISOString().split('T')[0];
 
-    // pending booking details (stored while modal is open)
     let pendingBooking = null;
 
     // ── API HELPER ────────────────────────────────────────────
@@ -679,7 +677,6 @@
       const btn  = document.getElementById('searchBtn');
       const area = document.getElementById('contentArea');
 
-      // switch to results tab
       document.getElementById('tabResults').classList.add('on');
       document.getElementById('tabBookings').classList.remove('on');
 
@@ -688,7 +685,6 @@
       btn.textContent = 'Searching...';
 
       try {
-        // Build query string — only include params that are filled
         const params = new URLSearchParams();
         if (src)  params.append('source', src);
         if (dst)  params.append('destination', dst);
@@ -708,14 +704,11 @@
           return;
         }
 
-        // render ride cards
         area.innerHTML = data.map((ride, i) => {
           const driverInitial = ride.driver?.name?.charAt(0) || '?';
           const driverName    = ride.driver?.name || 'Unknown';
           const maxSeats      = ride.availableSeats;
-
-          // build seats options 1..availableSeats
-          const seatOptions = Array.from({length: maxSeats}, (_,k) =>
+          const seatOptions   = Array.from({length: maxSeats}, (_,k) =>
             `<option value="${k+1}">${k+1}</option>`
           ).join('');
 
@@ -734,7 +727,6 @@
                   ${ride.notes ? `<span class="meta-chip">📝 ${ride.notes}</span>` : ''}
                 </div>
               </div>
-
               <div class="driver-info">
                 <div class="driver-avatar">${driverInitial}</div>
                 <div>
@@ -742,7 +734,6 @@
                   <div class="driver-label">Driver</div>
                 </div>
               </div>
-
               <div class="ride-action">
                 <div>
                   <div class="price-tag">₹${ride.pricePerSeat}</div>
@@ -774,19 +765,17 @@
     function openModal(rideId, src, dst, date, time, price, driverName) {
       const seats = parseInt(document.getElementById(`seats_${rideId}`).value);
       const total = seats * price;
-
       pendingBooking = { rideId, seats, total, src, dst };
 
       document.getElementById('modalDetail').innerHTML = `
-        <div class="modal-row"><span class="k">Route</span>      <span class="v">${src} → ${dst}</span></div>
-        <div class="modal-row"><span class="k">Date</span>       <span class="v">${date}</span></div>
-        <div class="modal-row"><span class="k">Time</span>       <span class="v">${time}</span></div>
-        <div class="modal-row"><span class="k">Driver</span>     <span class="v">${driverName}</span></div>
-        <div class="modal-row"><span class="k">Seats</span>      <span class="v">${seats}</span></div>
+        <div class="modal-row"><span class="k">Route</span>  <span class="v">${src} → ${dst}</span></div>
+        <div class="modal-row"><span class="k">Date</span>   <span class="v">${date}</span></div>
+        <div class="modal-row"><span class="k">Time</span>   <span class="v">${time}</span></div>
+        <div class="modal-row"><span class="k">Driver</span> <span class="v">${driverName}</span></div>
+        <div class="modal-row"><span class="k">Seats</span>  <span class="v">${seats}</span></div>
         <div class="modal-row"><span class="k">₹${price} × ${seats}</span><span class="v">₹${total}</span></div>
         <div class="modal-row modal-total"><span class="k">Total</span><span class="v">₹${total}</span></div>
       `;
-
       document.getElementById('modalOverlay').classList.add('show');
     }
 
@@ -795,7 +784,6 @@
       pendingBooking = null;
     }
 
-    // close modal on overlay click
     document.getElementById('modalOverlay').addEventListener('click', (e) => {
       if (e.target === document.getElementById('modalOverlay')) closeModal();
     });
@@ -816,15 +804,12 @@
         if (res.ok) {
           closeModal();
           showToast(`✅ Ride booked! ₹${pendingBooking.total} confirmed.`);
-
-          // disable the book button for this ride
           const bookBtn = document.getElementById(`bookBtn_${pendingBooking.rideId}`);
           if (bookBtn) {
             bookBtn.textContent = '✅ Booked!';
             bookBtn.classList.add('booked');
             bookBtn.disabled = true;
           }
-
           loadStats();
         } else {
           showToast(data.message || 'Booking failed.', true);
@@ -868,8 +853,8 @@
             <div class="booking-meta">
               <span class="meta-chip">📅 ${b.ride?.rideDate || '—'}</span>
               <span class="meta-chip">🕐 ${b.ride?.rideTime?.slice(0,5) || '—'}</span>
-              <span class="meta-chip">💺 ${b.seatsBooked} seat(s)</span>
-              <span class="meta-chip">💰 ₹${b.totalAmount}</span>
+              <span class="meta-chip">💺 ${b.numberOfSeats} seat(s)</span>
+              <span class="meta-chip">💰 ₹${(b.numberOfSeats * (b.ride?.pricePerSeat || 0)).toFixed(0)}</span>
               <span class="meta-chip">🚗 ${b.ride?.driver?.name || '—'}</span>
             </div>
           </div>`
@@ -884,10 +869,9 @@
     async function loadStats() {
       try {
         const { data } = await api('/api/bookings/my-bookings');
-        const count    = data.length;
-        const spent    = data.reduce((s,b) => s + (b.totalAmount || 0), 0);
-        // Fun stat: each shared ride saves ~2.3kg CO2 per seat
-        const co2      = (data.reduce((s,b) => s + (b.seatsBooked || 1), 0) * 2.3).toFixed(1);
+        const count = data.length;
+        const spent = data.reduce((s,b) => s + ((b.numberOfSeats || 0) * (b.ride?.pricePerSeat || 0)), 0);
+        const co2   = (data.reduce((s,b) => s + (b.numberOfSeats || 1), 0) * 2.3).toFixed(1);
 
         document.getElementById('statBookings').textContent = count;
         document.getElementById('statSaved').textContent    = spent.toLocaleString('en-IN');
@@ -904,6 +888,6 @@
     // ── INIT ──────────────────────────────────────────────────
     loadStats();
 
-  </script>
+</script>
 </body>
 </html>
