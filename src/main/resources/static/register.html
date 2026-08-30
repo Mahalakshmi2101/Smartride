@@ -507,7 +507,15 @@
   <script>
     // currently selected role — starts as DRIVER
     let selectedRole = 'DRIVER';
+    const vehicleMaxSeats = { SEDAN: 4, HATCHBACK: 4, SUV: 6, MINIVAN: 7 };
 
+    document.getElementById('vehicleType').addEventListener('change', function() {
+      const max = vehicleMaxSeats[this.value] || 10;
+      const capacityInput = document.getElementById('capacity');
+      capacityInput.max = max;
+      capacityInput.placeholder = max;
+      if (parseInt(capacityInput.value) > max) capacityInput.value = max;
+    });
     // ── ROLE TOGGLE ─────────────────────────────────────────
     function selectRole(role) {
       selectedRole = role;

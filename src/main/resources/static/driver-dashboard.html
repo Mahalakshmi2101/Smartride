@@ -551,6 +551,19 @@
     // ── SET MIN DATE to today ─────────────────────────────────
     document.getElementById('rideDate').min = new Date().toISOString().split('T')[0];
 
+// fetch driver's vehicle seat limit
+let driverMaxSeats = 6;
+async function loadDriverProfile() {
+  try {
+    const { data } = await api('/api/auth/me');
+    if (data.vehicleSeats) {
+      driverMaxSeats = data.vehicleSeats;
+      const seatsInput = document.getElementById('seats');
+      seatsInput.max = driverMaxSeats;
+      seatsInput.placeholder = driverMaxSeats;
+    }
+  } catch(e) {}
+}
     // ── API HELPER ────────────────────────────────────────────
     async function api(url, method='GET', body=null) {
       const opts = {
@@ -588,6 +601,9 @@
       if (!source || !destination || !rideDate || !rideTime || !seats || !price) {
         showToast('Please fill all required fields.', true); return;
       }
+      if (parseInt(seats) > driverMaxSeats) {
+    	  showToast(`Max ${driverMaxSeats} seats allowed for your vehicle.`, true); return;
+    	}
 
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Posting...';
@@ -756,6 +772,7 @@
     }
 
     // ── INIT ──────────────────────────────────────────────────
+    loadDriverProfile();
     loadStats();
     loadMyRides();
 

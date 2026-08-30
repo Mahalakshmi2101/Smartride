@@ -81,6 +81,8 @@ public class AuthController {
             response.put("name",    user.getName());
             response.put("email",   user.getEmail());
             response.put("role",    user.getRoles());
+            response.put("vehicleSeats", user.getVehicleSeats());
+            response.put("vehicleType",  user.getVehicleType());
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
