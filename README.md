@@ -74,7 +74,7 @@ Swagger UI at `http://localhost:8080/swagger-ui.html`
 
 ## Live Demo
 
-🔗 [smartride.onrender.com](https://smartride.onrender.com)
+🔗 https://smartride-cyur.onrender.com
 
 ## Author
 
