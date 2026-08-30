@@ -1,5 +1,5 @@
 package com.smartride.controller;
-
+import java.time.LocalDateTime;
 import com.smartride.model.User;
 import com.smartride.model.entity.Ride;
 import com.smartride.repository.RideRepository;
@@ -48,15 +48,24 @@ public class RideController {
     }
 
     // GET all active rides (for passenger search)
+ // GET all active rides (for passenger search)
     @GetMapping("/search")
     public ResponseEntity<?> searchRides(
             @RequestParam(required = false) String source,
             @RequestParam(required = false) String destination,
             @RequestParam(required = false) String date) {
         try {
-            List<Ride> all = rideRepository.findByStatus(Ride.RideStatus.ACTIVE);
+        	LocalDateTime now = LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata"));
 
-            // filter by source
+            List<Ride> all = rideRepository.findByStatus(Ride.RideStatus.ACTIVE)
+                    .stream()
+                    .filter(r -> {
+                        java.time.LocalDateTime rideDateTime =
+                            java.time.LocalDateTime.of(r.getRideDate(), r.getRideTime());
+                        return rideDateTime.isAfter(now);
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+
             if (source != null && !source.isEmpty()) {
                 all = all.stream()
                         .filter(r -> r.getSource()
@@ -65,7 +74,6 @@ public class RideController {
                         .collect(java.util.stream.Collectors.toList());
             }
 
-            // filter by destination
             if (destination != null && !destination.isEmpty()) {
                 all = all.stream()
                         .filter(r -> r.getDestination()
@@ -74,7 +82,6 @@ public class RideController {
                         .collect(java.util.stream.Collectors.toList());
             }
 
-            // filter by date
             if (date != null && !date.isEmpty()) {
                 all = all.stream()
                         .filter(r -> r.getRideDate().toString().equals(date))
@@ -82,12 +89,12 @@ public class RideController {
             }
 
             return ResponseEntity.ok(all);
+
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(Map.of("message", e.getMessage()));
         }
     }
-
     // GET single ride by id
     @GetMapping("/{id}")
     public ResponseEntity<?> getRideById(@PathVariable Long id) {
