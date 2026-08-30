@@ -6,6 +6,7 @@
   <title>SmartRide — Driver Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
 
     :root {
@@ -712,6 +713,22 @@
     }
 
     // ── STATS ─────────────────────────────────────────────────
+        // ── CANCEL BOOKING ────────────────────────────────────────
+    async function cancelBooking(bookingId) {
+      if (!confirm('Cancel this booking? This cannot be undone.')) return;
+      try {
+        const { res } = await api(`/api/bookings/${bookingId}`, 'DELETE');
+        if (res.ok) {
+          showToast('Booking cancelled.');
+          loadMyBookings();
+          loadStats();
+        } else {
+          showToast('Could not cancel. Try again.', true);
+        }
+      } catch(e) {
+        showToast('Server error.', true);
+      }
+    }
     async function loadStats() {
       try {
         const { data: rides } = await api('/api/rides/my-rides');

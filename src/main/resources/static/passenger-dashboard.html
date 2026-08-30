@@ -6,6 +6,7 @@
   <title>SmartRide — Passenger Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
 
     :root {
@@ -379,6 +380,16 @@
     .badge.confirmed { background:rgba(52,211,153,.15); color:var(--green); border:1px solid rgba(52,211,153,.3); }
     .badge.pending   { background:rgba(251,191,36,.12);  color:var(--amber); border:1px solid rgba(251,191,36,.3); }
     .badge.cancelled { background:rgba(248,113,113,.12); color:var(--red);   border:1px solid rgba(248,113,113,.3); }
+    .btn-cancel-booking {
+  margin-top:.6rem;
+  padding:6px 16px;
+  background:rgba(248,113,113,.08);
+  border:1px solid rgba(248,113,113,.2);
+  border-radius:50px; color:var(--red);
+  font-family:'Outfit',sans-serif; font-size:.78rem;
+  cursor:pointer; transition:all .2s;
+}
+.btn-cancel-booking:hover { background:rgba(248,113,113,.18); }
 
     /* empty / loading */
     .empty {
@@ -802,15 +813,15 @@
         });
 
         if (res.ok) {
-          closeModal();
-          showToast(`✅ Ride booked! ₹${pendingBooking.total} confirmed.`);
-          const bookBtn = document.getElementById(`bookBtn_${pendingBooking.rideId}`);
-          if (bookBtn) {
-            bookBtn.textContent = '✅ Booked!';
-            bookBtn.classList.add('booked');
-            bookBtn.disabled = true;
-          }
-          loadStats();
+            closeModal();
+            const bookBtn = document.getElementById(`bookBtn_${pendingBooking.rideId}`);
+            if (bookBtn) {
+              bookBtn.textContent = '✅ Booked!';
+              bookBtn.classList.add('booked');
+              bookBtn.disabled = true;
+            }
+            await initiatePayment(data.id, pendingBooking.total);
+            loadStats();
         } else {
           showToast(data.message || 'Booking failed.', true);
         }
@@ -843,28 +854,68 @@
         }
 
         area.innerHTML = data.map((b, i) => `
-          <div class="booking-card" style="animation-delay:${i*0.07}s">
-            <div class="booking-route">
-              <span>${b.ride?.source || '—'}</span>
-              <span style="color:var(--violet)">→</span>
-              <span>${b.ride?.destination || '—'}</span>
-              <span class="badge ${b.status?.toLowerCase()}" style="margin-left:auto">${b.status}</span>
-            </div>
-            <div class="booking-meta">
-              <span class="meta-chip">📅 ${b.ride?.rideDate || '—'}</span>
-              <span class="meta-chip">🕐 ${b.ride?.rideTime?.slice(0,5) || '—'}</span>
-              <span class="meta-chip">💺 ${b.numberOfSeats} seat(s)</span>
-              <span class="meta-chip">💰 ₹${(b.numberOfSeats * (b.ride?.pricePerSeat || 0)).toFixed(0)}</span>
-              <span class="meta-chip">🚗 ${b.ride?.driver?.name || '—'}</span>
-            </div>
-          </div>`
-        ).join('');
+        <div class="booking-card" style="animation-delay:${i*0.07}s">
+          <div class="booking-route">
+            <span>${b.ride?.source || '—'}</span>
+            <span style="color:var(--violet)">→</span>
+            <span>${b.ride?.destination || '—'}</span>
+            <span class="badge ${b.status?.toLowerCase()}" style="margin-left:auto">${b.status}</span>
+          </div>
+          <div class="booking-meta">
+            <span class="meta-chip">📅 ${b.ride?.rideDate || '—'}</span>
+            <span class="meta-chip">🕐 ${b.ride?.rideTime?.slice(0,5) || '—'}</span>
+            <span class="meta-chip">💺 ${b.numberOfSeats} seat(s)</span>
+            <span class="meta-chip">💰 ₹${(b.numberOfSeats * (b.ride?.pricePerSeat || 0)).toFixed(0)}</span>
+            <span class="meta-chip">🚗 ${b.ride?.driver?.name || '—'}</span>
+          </div>
+          ${b.status === 'CONFIRMED' ? `
+            <button class="btn-cancel-booking" onclick="cancelBooking(${b.id})">
+              ✕ Cancel Booking
+            </button>` : ''}
+        </div>`
+      ).join('');
 
       } catch(e) {
         area.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span>Could not load bookings.</div>';
       }
     }
+    // ── RAZORPAY PAYMENT ──────────────────────────────────────
+    async function initiatePayment(bookingId, total) {
+      try {
+        const { res, data } = await api('/api/payments/create-order', 'POST', { bookingId });
+        if (!res.ok) { showToast('Payment setup failed.', true); return; }
 
+        return new Promise((resolve) => {
+          const options = {
+            key:      data.keyId,
+            amount:   data.amount,
+            currency: data.currency,
+            order_id: data.orderId,
+            name:     'SmartRide',
+            description: 'Ride Booking Payment',
+            theme: { color: '#7c3aed' },
+            handler: async function(response) {
+              const { res: vRes } = await api('/api/payments/verify', 'POST', {
+                ...response, bookingId: String(bookingId)
+              });
+              if (vRes.ok) {
+                showToast(`✅ Payment of ₹${total} confirmed!`);
+              } else {
+                showToast('Payment verification failed.', true);
+              }
+              resolve();
+            },
+            modal: { ondismiss: () => {
+              showToast('Payment cancelled. Your booking is still confirmed.', true);
+              resolve();
+            }}
+          };
+          new Razorpay(options).open();
+        });
+      } catch(e) {
+        showToast('Payment error. Try again.', true);
+      }
+    }item
     // ── STATS ─────────────────────────────────────────────────
     async function loadStats() {
       try {
