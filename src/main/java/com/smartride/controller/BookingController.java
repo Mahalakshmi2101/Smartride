@@ -114,8 +114,21 @@ public class BookingController {
             User user = (User) authentication.getPrincipal();
             Booking booking = bookingRepository.findByIdAndUser(id, user)
                     .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+            if ("CANCELLED".equals(booking.getStatus())) {
+                Map<String, Object> err = new HashMap<>();
+                err.put("message", "Booking already cancelled");
+                return ResponseEntity.badRequest().body(err);
+            }
+
+            // Restore seats to the ride
+            Ride ride = booking.getRide();
+            ride.setAvailableSeats(ride.getAvailableSeats() + booking.getNumberOfSeats());
+            rideRepository.save(ride);
+
             booking.setStatus("CANCELLED");
             bookingRepository.save(booking);
+
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Booking cancelled");
             return ResponseEntity.ok(response);
