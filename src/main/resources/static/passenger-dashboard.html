@@ -575,9 +575,10 @@
       try {
         const { res, data } = await api('/api/bookings/my-bookings');
         if (!res.ok) return;
-        const count = data.length;
-        const spent = data.reduce((s,b) => s + ((b.numberOfSeats || 0) * (b.ride?.pricePerSeat || 0)), 0);
-        const co2   = (data.reduce((s,b) => s + (b.numberOfSeats || 1), 0) * 2.3).toFixed(1);
+        const confirmed = data.filter(b => b.status === 'CONFIRMED');
+        const count = confirmed.length;
+        const spent = confirmed.reduce((s,b) => s + ((b.numberOfSeats || 0) * (b.ride?.pricePerSeat || 0)), 0);
+        const co2   = (confirmed.reduce((s,b) => s + (b.numberOfSeats || 1), 0) * 2.3).toFixed(1);
         document.getElementById('statBookings').textContent = count;
         document.getElementById('statSaved').textContent    = spent.toLocaleString('en-IN');
         document.getElementById('statCo2').textContent      = co2;
