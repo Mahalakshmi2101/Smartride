@@ -689,23 +689,25 @@
           return;
         }
 
-        area.innerHTML = allBookings.map((b, i) => `
-          <div class="ride-card" style="animation-delay:${i*0.07}s">
-            <div class="ride-route">
-              <span>🧍 ${b.passenger?.name || 'Passenger'}</span>
-              <span class="badge ${b.status?.toLowerCase()}" style="margin-left:auto">${b.status}</span>
-            </div>
-            <div class="ride-meta">
-              <span class="meta-chip">🛣️ ${b.ride?.source} → ${b.ride?.destination}</span>
-              <span class="meta-chip">💺 ${b.seatsBooked} seat(s)</span>
-              <span class="meta-chip">💰 ₹${b.totalAmount}</span>
-              <span class="meta-chip">📅 ${b.ride?.rideDate}</span>
-            </div>
-            <div style="font-size:.78rem;color:var(--dim);margin-top:.4rem">
-              ✉️ ${b.passenger?.email || '—'} &nbsp; 📱 ${b.passenger?.phone || '—'}
-            </div>
-          </div>`
-        ).join('');
+        area.innerHTML = allBookings.map((b, i) => {
+            const fare = (b.numberOfSeats || 0) * (b.ride?.pricePerSeat || 0);
+            return `
+            <div class="ride-card" style="animation-delay:${i*0.07}s">
+              <div class="ride-route">
+                <span>🧍 ${b.user?.name || 'Passenger'}</span>
+                <span class="badge ${b.status?.toLowerCase()}" style="margin-left:auto">${b.status}</span>
+              </div>
+              <div class="ride-meta">
+                <span class="meta-chip">🛣️ ${b.ride?.source} → ${b.ride?.destination}</span>
+                <span class="meta-chip">💺 ${b.numberOfSeats} seat(s)</span>
+                <span class="meta-chip">💰 ₹${fare}</span>
+                <span class="meta-chip">📅 ${b.ride?.rideDate}</span>
+              </div>
+              <div style="font-size:.78rem;color:var(--dim);margin-top:.4rem">
+                ✉️ ${b.user?.email || '—'}
+              </div>
+            </div>`;
+          }).join('');
 
       } catch(e) {
         area.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span>Could not load bookings.</div>';
