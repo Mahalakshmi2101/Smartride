@@ -1,4 +1,5 @@
 package com.smartride.model;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,11 +18,10 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private String name;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -31,8 +31,20 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String roles = "USER";
 
-    public User() {
-    }
+    // Vehicle fields — only populated for DRIVER role
+    @Column(name = "car_model")
+    private String carModel;
+
+    @Column(name = "license_plate")
+    private String licensePlate;
+
+    @Column(name = "vehicle_seats")
+    private Integer vehicleSeats;
+
+    @Column(name = "vehicle_type")
+    private String vehicleType;
+
+    public User() {}
 
     public User(String email, String password) {
         this.email = email;
@@ -40,44 +52,36 @@ public class User implements UserDetails {
         this.roles = "USER";
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    // Spring Security requires this — return email as the username
-    @Override
-    public String getUsername() {
-        return email;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
     @Override
-    public String getPassword() {
-        return password;
-    }
+    public String getUsername() { return email; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    @Override
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getRoles() {
-        return roles;
-    }
+    public String getRoles() { return roles; }
+    public void setRoles(String roles) { this.roles = roles; }
 
-    public void setRoles(String roles) {
-        this.roles = roles;
-    }
+    public String getCarModel() { return carModel; }
+    public void setCarModel(String carModel) { this.carModel = carModel; }
+
+    public String getLicensePlate() { return licensePlate; }
+    public void setLicensePlate(String licensePlate) { this.licensePlate = licensePlate; }
+
+    public Integer getVehicleSeats() { return vehicleSeats; }
+    public void setVehicleSeats(Integer vehicleSeats) { this.vehicleSeats = vehicleSeats; }
+
+    public String getVehicleType() { return vehicleType; }
+    public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -85,15 +89,8 @@ public class User implements UserDetails {
         return Collections.singletonList(new SimpleGrantedAuthority(roleWithPrefix));
     }
 
-    @Override
-    public boolean isAccountNonExpired() { return true; }
-
-    @Override
-    public boolean isAccountNonLocked() { return true; }
-
-    @Override
-    public boolean isCredentialsNonExpired() { return true; }
-
-    @Override
-    public boolean isEnabled() { return true; }
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
 }

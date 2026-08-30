@@ -33,12 +33,16 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest request) {
         Map<String, Object> response = new HashMap<>();
         try {
-            User user = userService.registerNewUser(
-                request.getName(),
-                request.getEmail(),
-                request.getPassword(),
-                request.getRole()
-            );
+        	User user = userService.registerNewUser(
+        		    request.getName(),
+        		    request.getEmail(),
+        		    request.getPassword(),
+        		    request.getRole(),
+        		    request.getCarModel(),
+        		    request.getLicensePlate(),
+        		    request.getCapacity(),
+        		    request.getVehicleType()
+        		);
 
             // generate token immediately so frontend can log in right after register
             String token = jwtUtils.generateToken(user);

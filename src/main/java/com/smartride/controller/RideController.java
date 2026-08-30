@@ -25,6 +25,13 @@ public class RideController {
             Authentication authentication) {
         try {
             User driver = (User) authentication.getPrincipal();
+
+            // validate seats against vehicle capacity
+            if (driver.getVehicleSeats() != null && rideRequest.getAvailableSeats() > driver.getVehicleSeats()) {
+                return ResponseEntity.status(400)
+                        .body(Map.of("message", "Seats cannot exceed your vehicle capacity of " + driver.getVehicleSeats()));
+            }
+
             rideRequest.setDriver(driver);
             Ride saved = rideRepository.save(rideRequest);
             return ResponseEntity.ok(saved);
