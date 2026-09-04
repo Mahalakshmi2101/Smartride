@@ -58,6 +58,17 @@ public class Ride {
 
     @Column(length = 500)
     private String notes;
+    @Column(name = "trip_type", nullable = false)
+    private String tripType = "WITHIN_CITY";
+
+    @Column(name = "is_women_only", nullable = false)
+    private boolean womenOnly = false;
+
+    public String getTripType() { return tripType; }
+    public void setTripType(String tripType) { this.tripType = tripType; }
+
+    public boolean isWomenOnly() { return womenOnly; }
+    public void setWomenOnly(boolean womenOnly) { this.womenOnly = womenOnly; }
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
