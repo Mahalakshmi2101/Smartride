@@ -2,6 +2,7 @@ package com.smartride.model.entity;
 import com.smartride.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import com.smartride.validation.OnCreate;
 import jakarta.validation.constraints.FutureOrPresent;  // ✅ ONLY this, @Future removed
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
