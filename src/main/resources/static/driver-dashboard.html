@@ -636,45 +636,67 @@ async function loadDriverProfile() {
     }
 
     // ── LOAD MY RIDES ─────────────────────────────────────────
-    async function loadMyRides() {
-      const area = document.getElementById('listArea');
-      area.innerHTML = '<div class="loading"><span class="spin"></span>Loading rides...</div>';
+    // ── LOAD MY RIDES ─────────────────────────────────────────
+async function loadMyRides() {
+  const area = document.getElementById('listArea');
+  area.innerHTML = '<div class="loading"><span class="spin"></span>Loading rides...</div>';
 
-      try {
-        const { res, data } = await api('/api/rides/my-rides');
-        if (!res.ok) throw new Error();
+  try {
+    const { res, data } = await api('/api/rides/my-rides');
+    if (!res.ok) throw new Error();
 
-        if (!data.length) {
-          area.innerHTML = `
-            <div class="empty">
-              <span class="empty-icon">🛣️</span>
-              No rides posted yet.<br/>Post your first ride!
-            </div>`;
-          return;
-        }
-
-        area.innerHTML = data.map((ride, i) => `
-          <div class="ride-card" style="animation-delay:${i*0.07}s">
-            <div class="ride-route">
-              <span>${ride.source}</span>
-              <span class="arrow">→</span>
-              <span>${ride.destination}</span>
-              <span class="badge active" style="margin-left:auto">${ride.status}</span>
-            </div>
-            <div class="ride-meta">
-              <span class="meta-chip">📅 ${ride.rideDate}</span>
-              <span class="meta-chip">🕐 ${ride.rideTime?.slice(0,5)}</span>
-              <span class="meta-chip">💺 ${ride.availableSeats} seats left</span>
-              <span class="meta-chip">💸 ₹${ride.pricePerSeat}/seat</span>
-            </div>
-            ${ride.notes ? `<div style="font-size:.78rem;color:var(--dim);margin-top:.5rem">📝 ${ride.notes}</div>` : ''}
-          </div>`
-        ).join('');
-
-      } catch(e) {
-        area.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span>Could not load rides.</div>';
-      }
+    if (!data.length) {
+      area.innerHTML = `
+        <div class="empty">
+          <span class="empty-icon">🛣️</span>
+          No rides posted yet.<br/>Post your first ride!
+        </div>`;
+      return;
     }
+
+    const activeRides = data.filter(r => r.status === 'ACTIVE');
+    const pastRides   = data.filter(r => r.status !== 'ACTIVE');
+
+    function rideCardHTML(ride, i) {
+      const isActive = ride.status === 'ACTIVE';
+      const badgeClass = isActive ? 'active' : 'completed';
+      const badgeLabel = isActive ? 'ACTIVE' : 'PAST';
+      return `
+        <div class="ride-card" style="animation-delay:${i*0.07}s">
+          <div class="ride-route">
+            <span>${ride.source}</span>
+            <span class="arrow">→</span>
+            <span>${ride.destination}</span>
+            <span class="badge ${badgeClass}" style="margin-left:auto">${badgeLabel}</span>
+          </div>
+          <div class="ride-meta">
+            <span class="meta-chip">📅 ${ride.rideDate}</span>
+            <span class="meta-chip">🕐 ${ride.rideTime?.slice(0,5)}</span>
+            <span class="meta-chip">💺 ${ride.availableSeats} seats left</span>
+            <span class="meta-chip">💸 ₹${ride.pricePerSeat}/seat</span>
+          </div>
+          ${ride.notes ? `<div style="font-size:.78rem;color:var(--dim);margin-top:.5rem">📝 ${ride.notes}</div>` : ''}
+        </div>`;
+    }
+
+    let html = '';
+
+    if (activeRides.length) {
+      html += `<div style="font-size:.78rem;color:var(--violet);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.6rem;">🟢 Active Rides</div>`;
+      html += activeRides.map((r, i) => rideCardHTML(r, i)).join('');
+    }
+
+    if (pastRides.length) {
+      html += `<div style="font-size:.78rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin:1rem 0 .6rem;">⏳ Past Rides</div>`;
+      html += pastRides.map((r, i) => rideCardHTML(r, i)).join('');
+    }
+
+    area.innerHTML = html;
+
+  } catch(e) {
+    area.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span>Could not load rides.</div>';
+  }
+}
 
     // ── LOAD BOOKINGS ON MY RIDES ─────────────────────────────
     // We load my rides first, then for each ride load its bookings

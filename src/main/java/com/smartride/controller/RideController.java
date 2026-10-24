@@ -5,7 +5,8 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import org.springframework.validation.annotation.Validated;
+import com.smartride.validation.OnCreate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,7 +26,7 @@ public class RideController {
     // POST a new ride
     @PostMapping
     public ResponseEntity<?> postRide(
-            @RequestBody Ride rideRequest,
+            @Validated(OnCreate.class) @RequestBody Ride rideRequest,
             Authentication authentication) {
         try {
             User driver = (User) authentication.getPrincipal();

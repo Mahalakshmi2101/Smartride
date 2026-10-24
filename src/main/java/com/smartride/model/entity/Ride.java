@@ -38,9 +38,11 @@ public class Ride {
     private String destination;
 
     @Column(name = "ride_date", nullable = false)
-    @FutureOrPresent(message = "Ride date must be today or in the future")
-    private LocalDate rideDate;
-
+    @FutureOrPresent(
+    	    message = "Ride date must be today or in the future",
+    	    groups = OnCreate.class
+    	)
+    	private LocalDate rideDate;
     @Column(name = "ride_time", nullable = false)
     private LocalTime rideTime;
 
